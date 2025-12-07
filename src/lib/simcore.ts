@@ -43,6 +43,12 @@ export interface GlobalAssumptions {
 export type AssetClass = keyof AssetClassNumbers;
 
 export interface InvestmentStrategy {
+	/** Unique identifier for the strategy */
+	id: string;
+
+	/** Name of the strategy */
+	name: string;
+
 	/** Target allocations for different asset classes as a percentage of the total portfolio */
 	allocationWeights: AssetClassNumbers;
 
@@ -72,14 +78,26 @@ export function getPortfolioTotal(portfolio: InvestmentPortfolio): number {
 }
 
 export interface MortgageParams {
+	/** Unique identifier for the mortgage */
+	id: string;
+
+	/** Name of the mortgage */
+	name: string;
+
 	/** Interest rate for the mortgage */
 	interestRate: number;
 
-	/** Deposit amount for the mortgage */
-	deposit: number;
+	/** Initial loan to value for the mortgage */
+	ltv: number;
 
 	/** Term of the mortgage in years */
 	term: number;
+
+	/** Fixed period of the mortgage in years */
+	fixedPeriod: number;
+
+	/** Cost of arranging the mortgage */
+	arrangementFee: number;
 }
 
 export function computeMortgageRepayment(principal: number, params: MortgageParams): number {
@@ -171,6 +189,57 @@ export function stepPortfolio(args: {
 	return next;
 }
 
+function computeTaxBands(taxableAmount: number, bands: { upper: number, rate: number }[]): number {
+	let tax = 0;
+
+	let lastUpper = 0
+
+	for(let band of bands) {
+		if(taxableAmount <= lastUpper) {
+			break;
+		}
+		let upper = Math.min(taxableAmount, band.upper);
+		let inBand = upper - lastUpper;
+		tax += inBand * band.rate;
+		lastUpper = band.upper;
+	}
+
+	return tax;
+}
+
+interface PurchaseFees {
+	stampDuty: number;
+	solicitor: number;
+	searches: number;
+	landRegistry: number;
+	survey: number;
+	moving: number;
+}
+
+export function computePurchaseFees(propertyPrice: number, isFtb: boolean): PurchaseFees {
+
+	// First time buyers pay 0% stamp duty on the first £300,000 of the property price, and 5% on the rest
+	// If purchase price is over 500k, this exemption is not available.
+	const stampDutyBands = isFtb && propertyPrice < 500000? [
+		{ upper: 300000, rate: 0.00 },
+		{ upper: Infinity, rate: 0.05 },
+	] : [
+		{ upper: 125000, rate: 0.00 },
+		{ upper: 250000, rate: 0.02 },
+		{ upper: 925000, rate: 0.05 },
+		{ upper: 1500000, rate: 0.10 },
+		{ upper: Infinity, rate: 0.12 },
+	]
+
+	return {
+		stampDuty: computeTaxBands(propertyPrice, stampDutyBands),
+		solicitor: 1000,
+		searches: 300,
+		landRegistry: 150,
+		survey: 1000,
+		moving: 1000,
+	}
+}
 
 export function simulateMortgageFree(ga: GlobalAssumptions, strategy: InvestmentStrategy): SimulationResultRow[] {
 	let lastPortfolio: InvestmentPortfolio = {
@@ -207,13 +276,15 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStrategy, mortgage: MortgageParams): SimulationResultRow[] {
 	let results: SimulationResultRow[] = [];
 
+	const deposit = ga.propertyPrice * (1 - mortgage.ltv);
+
 	let lastPortfolio: InvestmentPortfolio = {
 		...EMPTY_PORTFOLIO,
-		cash: ga.openingSavings - mortgage.deposit,
+		cash: ga.openingSavings - deposit,
 	};
 
 	let lastHome: HomeStats = {
-		principal: ga.propertyPrice - mortgage.deposit,
+		principal: ga.propertyPrice - deposit,
 		worth: ga.propertyPrice,
 	}
 
