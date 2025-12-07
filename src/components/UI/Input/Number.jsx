@@ -2,17 +2,17 @@ import React from 'react'
 import InputText from './Text'
 
 function formatValue({ value, fixedDp }) {
-  if (typeof value === 'number') {
-    if (fixedDp) {
-      return value.toFixed(fixedDp)
-    } else {
-      return value.toString()
-    }
-  } else if (typeof value === 'string') {
-    return value
-  } else {
-    return ''
-  }
+	if (typeof value === 'number') {
+		if (fixedDp) {
+			return value.toFixed(fixedDp)
+		} else {
+			return value.toString()
+		}
+	} else if (typeof value === 'string') {
+		return value
+	} else {
+		return ''
+	}
 }
 
 /**
@@ -20,99 +20,100 @@ function formatValue({ value, fixedDp }) {
  * converts between dom string values, and number values to be used by the form.
  */
 export function InputNumber({
-  value,
-  setValue,
+	value,
+	setValue,
 
-  /**
-   * If set, will always display with fixed number of decimal places after blur
-   * This is useful for inputs for things like currency
-   */
-  fixedDp,
+	/**
+	 * If set, will always display with fixed number of decimal places after blur
+	 * This is useful for inputs for things like currency
+	 */
+	fixedDp,
 
-  ...rest
+	...rest
 }) {
-  const [displayedValue, setDisplayedValue] = React.useState(() =>
-    formatValue({ value, fixedDp })
-  )
+	const [displayedValue, setDisplayedValue] = React.useState(() =>
+		formatValue({ value, fixedDp })
+	)
 
-  function _setValue(value) {
-    setDisplayedValue(value)
-    if (value.match(/^\s*$/)) {
-      setValue(null)
-    } else {
-      let parsed = parseFloat(value)
-      if (isNaN(parsed)) {
-        setValue(null)
-      } else if (fixedDp) {
-        let mult = Math.pow(10, fixedDp)
-        setValue(Math.round(parsed * mult) / mult)
-      } else {
-        setValue(parsed)
-      }
-    }
-  }
+	function _setValue(value) {
+		setDisplayedValue(value)
+		if (value.match(/^\s*$/)) {
+			setValue(null)
+		} else {
+			let parsed = parseFloat(value)
+			if (isNaN(parsed)) {
+				setValue(null)
+			} else if (fixedDp) {
+				let mult = Math.pow(10, fixedDp)
+				setValue(Math.round(parsed * mult) / mult)
+			} else {
+				setValue(parsed)
+			}
+		}
+	}
 
-  const refFocus = React.useRef(false)
-  React.useEffect(() => {
-    if (refFocus.current) return
-    setDisplayedValue(formatValue({ value, fixedDp }))
-  }, [value, fixedDp])
+	const refFocus = React.useRef(false)
+	React.useEffect(() => {
+		if (refFocus.current) return
+		setDisplayedValue(formatValue({ value, fixedDp }))
+	}, [value, fixedDp])
 
-  return (
-    <InputText
-      onFocus={() => {
-        refFocus.current = true
-      }}
-      onBlur={() => {
-        refFocus.current = false
-        setDisplayedValue(null)
-      }}
-      onWheel={(e) => {
-        // By default mouse wheel inside number input will step the value up and down
-        // which makes it easy to change the value by accident when scrolling a form
-        // As such we prevent this default behaviour by simply blurring the input
-        // This is better than .preventDefault() which will prevent page scroll too
-        e.currentTarget.blur()
-      }}
-      type="number"
-      {...rest}
-      value={displayedValue ?? formatValue({ value, fixedDp })}
-      setValue={_setValue}
-    />
-  )
+	return (
+		<InputText
+			onFocus={() => {
+				refFocus.current = true
+			}}
+			onBlur={() => {
+				refFocus.current = false
+				setDisplayedValue(null)
+			}}
+			onWheel={(e) => {
+				// By default mouse wheel inside number input will step the value up and down
+				// which makes it easy to change the value by accident when scrolling a form
+				// As such we prevent this default behaviour by simply blurring the input
+				// This is better than .preventDefault() which will prevent page scroll too
+				e.currentTarget.blur()
+			}}
+			type="number"
+			className="text-right"
+			{...rest}
+			value={displayedValue ?? formatValue({ value, fixedDp })}
+			setValue={_setValue}
+		/>
+	)
 }
 
 export { InputNumber as default }
 
 export function InputPence({ value, setValue, ...rest }) {
-  return (
-    <InputNumber
-      value={value ? Math.round(value) / 100 : value}
-      setValue={(v) => setValue(v && Math.round(v * 100))}
-      fixedDp={2}
-      step="0.01"
-      {...rest}
-    />
-  )
+	return (
+		<InputNumber
+			value={value ? Math.round(value) / 100 : value}
+			setValue={(v) => setValue(v && Math.round(v * 100))}
+			fixedDp={2}
+			step="0.01"
+			{...rest}
+		/>
+	)
 }
 
 function formatBp(value) {
-  if (typeof value === 'number') {
-    return [
-      `${Math.floor(value / 10000)}`,
-      (value % 10000).toString().padStart(4, '0').replace(/0+$/, '') || '0',
-    ].join('.')
-  } else if (typeof value === 'string') {
-    return formatBp({ value: parseBpStringToInt(value) })
-  } else {
-    return ''
-  }
+	if (typeof value === 'number') {
+		return [
+			`${Math.floor(value / 10000)}`,
+			(value % 10000).toString().padStart(4, '0').replace(/0+$/, '') || '0',
+		].join('.')
+	} else if (typeof value === 'string') {
+		return formatBp({ value: parseBpStringToInt(value) })
+	} else {
+		return ''
+	}
 }
 
 function parseBpStringToInt(value) {
-  const [whole, decimal] = value.split('.')
-  const paddedDecimal = (decimal || '').padEnd(4, '0').slice(0, 4)
-  return parseInt(`${whole}${paddedDecimal}`)
+	const [whole, decimal] = value.split('.')
+	const paddedDecimal = (decimal || '').padEnd(4, '0').slice(0, 4)
+	return parseInt(`${whole}${paddedDecimal}`)
 }
 
 /**
@@ -123,37 +124,115 @@ function parseBpStringToInt(value) {
  * manipulation to ensure values are exact to avoid floating point truncation
  */
 export function InputBasisPoints({ value, setValue, ...rest }) {
-  const [displayedValue, setDisplayedValue] = React.useState(() =>
-    formatBp({ value })
-  )
+	const [displayedValue, setDisplayedValue] = React.useState(() =>
+		formatBp({ value })
+	)
 
-  function _setValue(value) {
-    setDisplayedValue(value)
-    setValue(parseBpStringToInt(value))
-  }
+	function _setValue(value) {
+		setDisplayedValue(value)
+		setValue(parseBpStringToInt(value))
+	}
 
-  const refFocus = React.useRef(false)
-  React.useEffect(() => {
-    if (refFocus.current) return
-    setDisplayedValue(formatBp(value))
-  }, [value])
+	const refFocus = React.useRef(false)
+	React.useEffect(() => {
+		if (refFocus.current) return
+		setDisplayedValue(formatBp(value))
+	}, [value])
 
-  return (
-    <InputText
-      onFocus={() => {
-        refFocus.current = true
-      }}
-      onBlur={() => {
-        refFocus.current = false
-        setDisplayedValue(null)
-      }}
-      onWheel={(e) => {
-        e.currentTarget.blur()
-      }}
-      type="number"
-      {...rest}
-      value={displayedValue ?? formatBp(value)}
-      setValue={_setValue}
-    />
-  )
+	return (
+		<InputText
+			onFocus={() => {
+				refFocus.current = true
+			}}
+			onBlur={() => {
+				refFocus.current = false
+				setDisplayedValue(null)
+			}}
+			onWheel={(e) => {
+				e.currentTarget.blur()
+			}}
+			type="number"
+			{...rest}
+			value={displayedValue ?? formatBp(value)}
+			setValue={_setValue}
+		/>
+	)
+}
+
+function formatPercent({ value, dp }) {
+	if (typeof value === 'number') {
+		const percentValue = value * 100
+		if (dp !== undefined) {
+			return percentValue.toFixed(dp)
+		} else {
+			return percentValue.toString()
+		}
+	} else if (typeof value === 'string') {
+		return value
+	} else {
+		return ''
+	}
+}
+
+/**
+ * Number input whose value is a decimal (e.g., 0.01) but displays as a percentage (e.g., 1).
+ *
+ * @param {number} dp - Number of decimal places to display (optional)
+ * @param {number|null} value - The decimal value (0.01 = 1%)
+ * @param {function} setValue - Callback to set the decimal value
+ */
+export function InputPercent({ value, setValue, dp = 2, ...rest }) {
+	const [displayedValue, setDisplayedValue] = React.useState(() =>
+		formatPercent({ value, dp })
+	)
+
+	function _setValue(value) {
+		setDisplayedValue(value)
+		if (value.match(/^\s*$/)) {
+			setValue(null)
+		} else {
+			let parsed = parseFloat(value)
+			if (isNaN(parsed)) {
+				setValue(null)
+			} else {
+				// Convert from percentage to decimal
+				const decimalValue = parsed / 100
+				if (dp !== undefined) {
+					// Round to the appropriate precision
+					let mult = Math.pow(10, dp + 2) // +2 because we divide by 100
+					setValue(Math.round(decimalValue * mult) / mult)
+				} else {
+					setValue(decimalValue)
+				}
+			}
+		}
+	}
+
+	const refFocus = React.useRef(false)
+	React.useEffect(() => {
+		if (refFocus.current) return
+		setDisplayedValue(formatPercent({ value, dp }))
+	}, [value, dp])
+
+	return (
+		<InputText
+			onFocus={() => {
+				refFocus.current = true
+			}}
+			onBlur={() => {
+				refFocus.current = false
+				setDisplayedValue(null)
+			}}
+			onWheel={(e) => {
+				e.currentTarget.blur()
+			}}
+			type="number"
+			className="text-right"
+			suffix="%"
+			step={dp === 0 ? '1' : '0.1'}
+			{...rest}
+			value={displayedValue ?? formatPercent({ value, dp })}
+			setValue={_setValue}
+		/>
+	)
 }

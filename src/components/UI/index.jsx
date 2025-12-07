@@ -1,3 +1,4 @@
 export { default as Field } from './Field'
 export { default as InputText } from './Input/Text'
-export { InputNumber, InputPence, InputBasisPoints } from './Input/Number'
+export { InputNumber, InputPence, InputBasisPoints, InputPercent } from './Input/Number'
+export { default as LiveForm } from './LiveForm'
