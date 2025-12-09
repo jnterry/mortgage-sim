@@ -1,6 +1,7 @@
 import './App.css'
 import React from 'react'
-import { Card, Table, Tooltip } from './components/UI'
+import { Card, Table, Tooltip, Button } from './components/UI'
+import ListSelect from './components/UI/Input/ListSelect'
 import GlobalAssumptionsForm from './components/forms/GlobalAssumptions'
 import { InvestmentStrategyEditor } from './components/forms/InvestmentStrategies'
 import { MortgageEditor } from './components/forms/Mortgages'
@@ -186,19 +187,52 @@ function App() {
 	const [selectedInvestStrat, setSelectedInvestStrat] = React.useState(null);
 	const [selectedMortgage, setSelectedMortgage] = React.useState(null);
 
-	const simResults = React.useMemo(() => {
-		if (!selectedInvestStrat || !selectedMortgage) return null;
+	const [scenarios, setScenarios] = React.useState([]);
 
-		const strategy = investmentStrategies.find(s => s.id === selectedInvestStrat);
-		const mortgage = mortgages.find(m => m.id === selectedMortgage);
+	const addScenario = React.useCallback(() => {
+		const newId = `scenario-${Date.now()}`
+		setScenarios(old => [...old, {
+			id: newId,
+			investmentStrategyId: investmentStrategies[0]?.id || null,
+			mortgageId: mortgages[0]?.id || null,
+		}])
+	}, [investmentStrategies, mortgages])
 
-		if (!strategy || !mortgage) return null;
+	const removeScenario = React.useCallback((id) => {
+		setScenarios(old => old.filter(s => s.id !== id))
+	}, [])
 
-		return {
-			savings: simulateMortgageFree(globalAssumptions, strategy),
-			mortgage: simulateMortgage(globalAssumptions, strategy, mortgage),
-		}
-	}, [selectedInvestStrat, selectedMortgage, globalAssumptions, investmentStrategies, mortgages])
+	const updateScenario = React.useCallback((id, updates) => {
+		setScenarios(old => old.map(s => s.id === id ? { ...s, ...updates } : s))
+	}, [])
+
+	const viewScenario = React.useCallback((scenario) => {
+		setSelectedInvestStrat(scenario.investmentStrategyId)
+		setSelectedMortgage(scenario.mortgageId)
+	}, [])
+
+	const noMortgageResults = React.useMemo(() => {
+		if (!selectedInvestStrat) return null
+		const strategy = investmentStrategies.find(s => s.id === selectedInvestStrat)
+		if (!strategy) return null
+		return simulateMortgageFree(globalAssumptions, strategy)
+	}, [selectedInvestStrat, investmentStrategies, globalAssumptions])
+
+	const scenarioResults = React.useMemo(() => {
+		return scenarios.map(scenario => {
+			const strategy = investmentStrategies.find(s => s.id === scenario.investmentStrategyId)
+			const mortgage = mortgages.find(m => m.id === scenario.mortgageId)
+
+			if (!strategy || !mortgage) return null
+
+			return {
+				id: scenario.id,
+				strategy,
+				mortgage,
+				results: simulateMortgage(globalAssumptions, strategy, mortgage),
+			}
+		}).filter(Boolean)
+	}, [scenarios, investmentStrategies, mortgages, globalAssumptions])
 
 	return (
 		<main>
@@ -227,7 +261,53 @@ function App() {
 					/>
 				</Card>
 			</div>
-			{simResults && <SimResults results={simResults} />}
+			<Card className="max-w-[1400px] mx-auto">
+				<div className="flex items-center gap-4 mb-4">
+					<h2 className="text-lg font-bold">Scenarios</h2>
+					<Button variant="secondary" size="small" onClick={addScenario}>
+						+ Add Scenario
+					</Button>
+				</div>
+				{scenarios.length > 0 && (
+					<div className="space-y-2">
+						{scenarios.map(scenario => {
+							const strategy = investmentStrategies.find(s => s.id === scenario.investmentStrategyId)
+							const mortgage = mortgages.find(m => m.id === scenario.mortgageId)
+							return (
+								<div key={scenario.id} className="flex items-center gap-2 p-2 border border-gray-300 rounded">
+									<ListSelect
+										value={scenario.investmentStrategyId}
+										setValue={(val) => updateScenario(scenario.id, { investmentStrategyId: val })}
+										list={investmentStrategies.map(s => ({ value: s.id, label: s.name }))}
+										className="flex-1"
+									/>
+									<ListSelect
+										value={scenario.mortgageId}
+										setValue={(val) => updateScenario(scenario.id, { mortgageId: val })}
+										list={mortgages.map(m => ({ value: m.id, label: m.name }))}
+										className="flex-1"
+									/>
+									<Button
+										variant="secondary"
+										size="small"
+										onClick={() => viewScenario(scenario)}
+									>
+										View
+									</Button>
+									<Button
+										variant="error"
+										size="small"
+										onClick={() => removeScenario(scenario.id)}
+									>
+										Remove
+									</Button>
+								</div>
+							)
+						})}
+					</div>
+				)}
+			</Card>
+			<SimResults scenarios={scenarioResults} noMortgageResults={noMortgageResults} />
 		</main>
 	)
 }
@@ -245,30 +325,69 @@ function App() {
 
 const SIM_INDICIES = new Array(39).fill(0).map((_, i) => i * 12)
 
-function SimResults({ results }) {
-
-	console.log('sim results', results);
-
-
+function SimResults({ scenarios, noMortgageResults }) {
 	return (
-		<Table>
-			<Table.Head>
-				<Table.Row>
-					<Table.Header>Year</Table.Header>
-					<Table.Header>Savings</Table.Header>
-					<Table.Header>House Value</Table.Header>
-				</Table.Row>
-			</Table.Head>
-			<Table.Body>
-				{SIM_INDICIES.map((index) => (
-					<Table.Row key={index}>
-						<Table.Cell>{Math.floor((index) / 12)}</Table.Cell>
-						<Table.Cell.Portfolio portfolio={results.savings[index].investments} />
-						<Table.Cell.Pounds>{results.savings[index].home.worth}</Table.Cell.Pounds>
+		<Card className="max-w-[1400px] mx-auto overflow-x-auto">
+			<Table>
+				<Table.Head>
+					<Table.Row>
+						<Table.Header rowSpan={2}>Year</Table.Header>
+						<Table.Header colSpan={2}>No Mortgage</Table.Header>
+						{scenarios.map(scenario => (
+							<React.Fragment key={scenario.id}>
+								<Table.Header colSpan={4}>
+									{scenario.strategy.name} / {scenario.mortgage.name}
+								</Table.Header>
+							</React.Fragment>
+						))}
 					</Table.Row>
-				))}
-			</Table.Body>
-		</Table>
+					<Table.Row>
+						<Table.Header>Savings</Table.Header>
+						<Table.Header>Est House Worth</Table.Header>
+						{scenarios.map(scenario => (
+							<React.Fragment key={scenario.id}>
+								<Table.Header>Principle</Table.Header>
+								<Table.Header>Equity</Table.Header>
+								<Table.Header>Savings</Table.Header>
+								<Table.Header>Net Worth</Table.Header>
+							</React.Fragment>
+						))}
+					</Table.Row>
+				</Table.Head>
+				<Table.Body>
+					{SIM_INDICIES.map((index) => (
+						<Table.Row key={index}>
+							<Table.Cell>{Math.floor((index) / 12)}</Table.Cell>
+							{noMortgageResults ? (
+								<>
+									<Table.Cell.Portfolio portfolio={noMortgageResults[index].investments} />
+									<Table.Cell.Pounds>{noMortgageResults[index].home.worth}</Table.Cell.Pounds>
+								</>
+							) : (
+								<>
+									<Table.Cell>-</Table.Cell>
+									<Table.Cell>-</Table.Cell>
+								</>
+							)}
+							{scenarios.map(scenario => {
+								const row = scenario.results[index]
+								if (!row) return null
+								const equity = row.home.worth - row.home.principal
+								const netWorth = equity + getPortfolioTotal(row.investments)
+								return (
+									<React.Fragment key={scenario.id}>
+										<Table.Cell.Pounds>{row.home.principal}</Table.Cell.Pounds>
+										<Table.Cell.Pounds>{equity}</Table.Cell.Pounds>
+										<Table.Cell.Portfolio portfolio={row.investments} />
+										<Table.Cell.Pounds>{netWorth}</Table.Cell.Pounds>
+									</React.Fragment>
+								)
+							})}
+						</Table.Row>
+					))}
+				</Table.Body>
+			</Table>
+		</Card>
 	)
 }
 

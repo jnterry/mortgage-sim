@@ -315,7 +315,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 			strategy: strategy,
 			expectedReturns: ga.expectedReturns,
 			extraDeposit: savingsFlow,
-			rebalance: step % strategy.rebalanceFrequency === 0,
+			rebalance: strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0,
 		});
 
 

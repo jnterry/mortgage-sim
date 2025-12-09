@@ -105,9 +105,9 @@ function TableCellPortfolio({ portfolio }) {
 	)
 }
 
-function TableHeader({ children }) {
+function TableHeader({ children, ...props }) {
 	return (
-		<th className="font-bold bg-gray-200">
+		<th className="font-bold bg-gray-200" {...props}>
 			{children}
 		</th>
 	)
