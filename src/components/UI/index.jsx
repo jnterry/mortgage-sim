@@ -4,3 +4,4 @@ export { InputNumber, InputPence, InputBasisPoints, InputPercent } from './Input
 export { default as LiveForm } from './LiveForm'
 export { default as Card } from './Card'
 export { default as Button } from './Button'
+export { default as Table } from './Table'

@@ -249,7 +249,7 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 
 	let results: SimulationResultRow[] = [];
 	results.push({
-		home: { principal: 0, worth: 0 },
+		home: { principal: 0, worth: ga.propertyPrice },
 		investments: lastPortfolio,
 	});
 
@@ -263,9 +263,9 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 		});
 
 		results.push({
-			home: { principal: 0, worth: 0 },
+			home: { principal: 0, worth: ga.propertyPrice * Math.pow(1 + ga.expectedReturns.realEstate / 12, step) },
 			investments: nextPortfolio,
-		})
+		});
 
 		lastPortfolio = nextPortfolio;
 	}

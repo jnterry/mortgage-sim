@@ -65,13 +65,15 @@ export function MortgageForm({ value, setValue, globalAssumptions }) {
 	)
 }
 
-export function MortgageEditor({ value, setValue, globalAssumptions }) {
+export function MortgageEditor({ value, setValue, globalAssumptions, selectedId, setSelectedId }) {
 	return (
 		<ListEditor
 			value={value}
 			setValue={setValue}
 			FormRenderer={MortgageForm}
 			formProps={{ globalAssumptions }}
+			selectedId={selectedId}
+			setSelectedId={setSelectedId}
 		/>
 	)
 }

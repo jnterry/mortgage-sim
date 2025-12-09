@@ -1,9 +1,7 @@
 import React from 'react'
 import { Button } from './UI'
 
-export default function ListEditor({ value, setValue, FormRenderer, formProps = {} }) {
-	const [selectedId, setSelectedId] = React.useState(null);
-
+export default function ListEditor({ selectedId, setSelectedId, value, setValue, FormRenderer, formProps = {} }) {
 	const selected = value.find((strategy) => strategy.id === selectedId);
 
 	return (

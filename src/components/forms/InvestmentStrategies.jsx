@@ -1,5 +1,5 @@
 import React from 'react'
-import { LiveForm, InputNumber, InputPercent, InputText, Button } from '../UI'
+import { LiveForm, InputNumber, InputText } from '../UI'
 import ListEditor from '../ListEditor'
 
 export function InvestmentStrategyForm({ value, setValue }) {
@@ -34,12 +34,14 @@ export function InvestmentStrategyForm({ value, setValue }) {
 	)
 }
 
-export function InvestmentStrategyEditor({ value, setValue }) {
+export function InvestmentStrategyEditor({ value, setValue, selectedId, setSelectedId }) {
 	return (
 		<ListEditor
 			value={value}
 			setValue={setValue}
 			FormRenderer={InvestmentStrategyForm}
+			selectedId={selectedId}
+			setSelectedId={setSelectedId}
 		/>
 	)
 }

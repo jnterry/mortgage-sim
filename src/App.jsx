@@ -1,9 +1,10 @@
 import './App.css'
 import React from 'react'
-import { Card } from './components/UI'
+import { Card, Table } from './components/UI'
 import GlobalAssumptionsForm from './components/forms/GlobalAssumptions'
 import { InvestmentStrategyEditor } from './components/forms/InvestmentStrategies'
 import { MortgageEditor } from './components/forms/Mortgages'
+import { simulateMortgageFree, simulateMortgage, getPortfolioTotal } from './lib/simcore'
 
 function useAppData() {
 	const [globalAssumptions, setGlobalAssumptions] = React.useState({
@@ -168,6 +169,23 @@ function App() {
 		setMortgages,
 	} = useAppData();
 
+	const [selectedInvestStrat, setSelectedInvestStrat] = React.useState(null);
+	const [selectedMortgage, setSelectedMortgage] = React.useState(null);
+
+	const simResults = React.useMemo(() => {
+		if (!selectedInvestStrat || !selectedMortgage) return null;
+
+		const strategy = investmentStrategies.find(s => s.id === selectedInvestStrat);
+		const mortgage = mortgages.find(m => m.id === selectedMortgage);
+
+		if (!strategy || !mortgage) return null;
+
+		return {
+			savings: simulateMortgageFree(globalAssumptions, strategy),
+			mortgage: simulateMortgage(globalAssumptions, strategy, mortgage),
+		}
+	}, [selectedInvestStrat, selectedMortgage, globalAssumptions, investmentStrategies, mortgages])
+
 	return (
 		<main>
 			<Card className="max-w-[1400px] mx-auto">
@@ -176,14 +194,67 @@ function App() {
 			<div className="grid grid-cols-2 gap-4 max-w-[1400px] mx-auto">
 				<Card>
 					<h2>Invetsment Strategies</h2>
-					<InvestmentStrategyEditor value={investmentStrategies} setValue={setInvestmentStrategies} />
+					<InvestmentStrategyEditor
+						value={investmentStrategies}
+						setValue={setInvestmentStrategies}
+						selectedId={selectedInvestStrat}
+						setSelectedId={setSelectedInvestStrat}
+						globalAssumptions={globalAssumptions}
+					/>
 				</Card>
 				<Card>
 					<h2>Mortgages</h2>
-					<MortgageEditor value={mortgages} setValue={setMortgages} globalAssumptions={globalAssumptions} />
+					<MortgageEditor
+						value={mortgages}
+						setValue={setMortgages}
+						globalAssumptions={globalAssumptions}
+						selectedId={selectedMortgage}
+						setSelectedId={setSelectedMortgage}
+					/>
 				</Card>
 			</div>
+			{simResults && <SimResults results={simResults} />}
 		</main>
+	)
+}
+
+// const SIM_INDICIES = [
+// 	// First year, every month
+// 	new Array(12).fill(0).map((_, i) => i),
+// 	// Next year, every quarter
+// 	new Array(4).fill(0).map((_, i) => 3 * i + 12),
+// 	// Next 1 years, every 6 months
+// 	new Array(2).fill(0).map((_, i) => 6 * i + 12),
+// 	// Next 36 years - every year
+// 	new Array(36).fill(0).map((_, i) => 12 * i + 36),
+// ].flat()
+
+const SIM_INDICIES = new Array(39 * 12).fill(0).map((_, i) => i * 12)
+
+function SimResults({ results }) {
+
+	console.log('sim results', results);
+
+
+	return (
+		<Table>
+			<Table.Head>
+				<Table.Row>
+					<Table.Header>Year</Table.Header>
+					<Table.Header>Savings</Table.Header>
+					<Table.Header>House Value</Table.Header>
+				</Table.Row>
+			</Table.Head>
+			<Table.Body>
+				{SIM_INDICIES.map((index) => (
+					<Table.Row key={index}>
+						<Table.Cell>{Math.floor((index) / 12)}</Table.Cell>
+						<Table.Cell.Pounds>{getPortfolioTotal(results.savings[index].investments)}</Table.Cell.Pounds>
+						<Table.Cell.Pounds>{results.savings[index].home.worth}</Table.Cell.Pounds>
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
 	)
 }
 
