@@ -1,6 +1,6 @@
 import './App.css'
 import React from 'react'
-import { Card, Table } from './components/UI'
+import { Card, Table, Tooltip } from './components/UI'
 import GlobalAssumptionsForm from './components/forms/GlobalAssumptions'
 import { InvestmentStrategyEditor } from './components/forms/InvestmentStrategies'
 import { MortgageEditor } from './components/forms/Mortgages'

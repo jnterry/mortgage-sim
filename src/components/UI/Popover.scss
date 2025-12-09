@@ -1,0 +1,106 @@
+[pb-popover] {
+	// note: it is important that we use visibility:hidden rather than display:none
+	// since we need to be able to measure the size of the component while it is
+	// invisible to perform screen space clipping -> and a display:none component
+	// always has a size of 0
+	visibility:hidden; position:fixed; z-index:9999;
+	transform-style: preserve-3d; // required for ::after to be rendered behind this
+}
+
+[pb-popover~="visible"] {
+	visibility: visible;
+}
+
+//////////////////////////////////////////////////
+//
+// Add parameters for popover position below...
+//
+// Note: The CSS is reponsible for rendering the popover
+// on a certain direction relative to the target position tx,ty
+//
+// The react code is responsible for computing what that target position actually is,
+// based upon the anchor (mouse cursor, element, etc)
+//
+//////////////////////////////////////////////////
+
+[pb-popover~="right"] {
+	transform: translate(0%, -50%);
+	&[pb-popover~="alignment-center"] { transform: translate(0%, -50%); }
+	&[pb-popover~="alignment-start"] { transform: translate(0%, 0%); }
+	left: calc(var(--tx) + var(--margin));
+	top: var(--ty);
+}
+
+[pb-popover~="top"] {
+	&[pb-popover~="alignment-center"] { transform: translate(-50%, -100%); }
+	&[pb-popover~="alignment-start"] { transform: translate(0%, -100%); }
+	transform: translate(-50%, -100%);
+	left: var(--tx);
+	top: calc(var(--ty) - var(--margin));
+}
+
+[pb-popover~="bottom"] {
+	&[pb-popover~="alignment-center"] { transform: translate(-50%, 0%); }
+	&[pb-popover~="alignment-start"] { transform: translate(0%, 0%); }
+	left: var(--tx);
+	top: calc(var(--ty) + var(--margin));
+}
+
+[pb-popover~="left"] {
+	&[pb-popover~="alignment-center"] { transform: translate(-100%, -50%); }
+	&[pb-popover~="alignment-start"] { transform: translate(-100%,  0%); }
+	left: calc(var(--tx) - var(--margin));
+	top: var(--ty);
+}
+
+
+
+
+
+[pb-tooltip] {
+	transform-style: preserve-3d; // required for ::after to be rendered behind this
+  border-color:#a7a9b1;
+}
+
+$tooltip_arrow_size: 10px;
+$tooltip_arrow_half: calc($tooltip_arrow_size/2);
+
+[pb-tooltip]::after {
+	content: " ";
+
+	// a square rotated by 45deg will give us the points we need to expose to make an arrow
+	height:$tooltip_arrow_size; width:$tooltip_arrow_size;
+	transform-origin: center; transform: rotate(45deg) translateZ(-1px);
+
+	// start the square dead center -> each direction will override one axis
+	position: absolute; left:calc(50% - #{$tooltip_arrow_half}); top:calc(50% - #{$tooltip_arrow_half});
+
+
+	// arrow might touch cursor, which would prevent the tooltip closing as we are technically
+	// hovering over it -> disable this
+  pointer-events:none;
+
+	background-color:#a7a9b1; // match border of main content
+}
+
+// Ensure the popover content is at least as wide as the trigger otherwise
+// it looks a bit odd
+[pb-popover~="match-trigger-size"][pb-popover~="bottom"]>*,
+[pb-popover~="match-trigger-size"][pb-popover~="top"]>* {
+  min-width: var(--trigger-size-x);
+}
+
+[pb-popover~="match-trigger-size"][pb-popover~="right"]>*,
+[pb-popover~="match-trigger-size"][pb-popover~="left"]>* {
+  min-height: var(--trigger-size-y);
+}
+////////////////////////////////////
+// Override the arrow location
+[pb-tooltip~="right" ]::after { left: -$tooltip_arrow_half; }
+[pb-tooltip~="top"   ]::after { top: calc(100% - #{$tooltip_arrow_half} - 1px); }
+[pb-tooltip~="bottom"]::after { top: -$tooltip_arrow_half; }
+[pb-tooltip~="left"  ]::after { left: calc(100% - #{$tooltip_arrow_half} - 1px); }
+
+[data-pb-tooltip-trigger]:focus-visible {
+  outline:none!important;
+}
