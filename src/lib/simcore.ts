@@ -139,6 +139,8 @@ export function stepPortfolio(args: {
 	rebalance: boolean,
 }): InvestmentPortfolio {
 
+	console.log('Step Portfolio', args)
+
 	let next : InvestmentPortfolio = { ...args.portfolio };
 
 	// Simululate rebalance
@@ -185,6 +187,8 @@ export function stepPortfolio(args: {
 	for(let assetClass of Object.keys(next) as AssetClass[]) {
 		next[assetClass] *= (1 + args.expectedReturns[assetClass] / 12);
 	}
+
+	console.log('Next Portfolio', next)
 
 	return next;
 }
@@ -259,7 +263,7 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 			strategy: strategy,
 			expectedReturns: ga.expectedReturns,
 			extraDeposit: ga.freeCashFlow - ga.equivalentRent,
-			rebalance: step % strategy.rebalanceFrequency === 0,
+			rebalance: strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0,
 		});
 
 		results.push({

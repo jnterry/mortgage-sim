@@ -27,6 +27,20 @@ function useAppData() {
 
 	const [investmentStrategies, setInvestmentStrategies] = React.useState([
 		{
+			id: 'cash-only',
+			name: 'Cash Only',
+			allocationWeights: {
+				cash: 100,
+				stocks: 0,
+				crypto: 0,
+				gold: 0,
+				bonds: 0,
+			},
+			maxCash: 9999999999,
+			minCash: 0,
+			rebalanceFrequency: 0,
+		},
+		{
 			id: 'conservative',
 			name: 'Conservative',
 			allocationWeights: {
@@ -229,7 +243,7 @@ function App() {
 // 	new Array(36).fill(0).map((_, i) => 12 * i + 36),
 // ].flat()
 
-const SIM_INDICIES = new Array(39 * 12).fill(0).map((_, i) => i * 12)
+const SIM_INDICIES = new Array(39).fill(0).map((_, i) => i * 12)
 
 function SimResults({ results }) {
 
@@ -249,7 +263,7 @@ function SimResults({ results }) {
 				{SIM_INDICIES.map((index) => (
 					<Table.Row key={index}>
 						<Table.Cell>{Math.floor((index) / 12)}</Table.Cell>
-						<Table.Cell.Pounds>{getPortfolioTotal(results.savings[index].investments)}</Table.Cell.Pounds>
+						<Table.Cell.Portfolio portfolio={results.savings[index].investments} />
 						<Table.Cell.Pounds>{results.savings[index].home.worth}</Table.Cell.Pounds>
 					</Table.Row>
 				))}
