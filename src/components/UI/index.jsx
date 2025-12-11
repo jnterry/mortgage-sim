@@ -1,5 +1,6 @@
 export { default as Field } from './Field'
 export { default as InputText } from './Input/Text'
+export { default as ListSelect } from './Input/ListSelect'
 export { InputNumber, InputPence, InputBasisPoints, InputPercent } from './Input/Number'
 export { default as LiveForm } from './LiveForm'
 export { default as Card } from './Card'

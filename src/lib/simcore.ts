@@ -24,9 +24,6 @@ export interface GlobalAssumptions {
 	/** If not purchasing a property, how much rent would be paid per month? */
 	equivalentRent: number;
 
-	/** Expected annual percentage return on savings */
-	cashReturn: number;
-
 	/** Expected returns for different asset classes over the lifetime of the mortgage in percentage per year */
 	expectedReturns: AssetClassNumbers;
 

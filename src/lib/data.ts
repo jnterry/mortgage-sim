@@ -1,4 +1,4 @@
-import type { GlobalAssumptions } from "./simcore";
+import type { GlobalAssumptions, InvestmentStrategy, MortgageParams } from "./simcore";
 
 export const GLOBAL_ASSUMPTIONS : GlobalAssumptions= {
 	openingSavings: 345000,
@@ -97,7 +97,7 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions= {
 	simulationYears: 40,
 }
 
-export const INVESTMENT_STRATEGIES = [
+export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 	{
 		id: 'cash-only',
 		name: 'Cash Only',
@@ -107,6 +107,7 @@ export const INVESTMENT_STRATEGIES = [
 			crypto: 0,
 			gold: 0,
 			bonds: 0,
+			realEstate: 0,
 		},
 		maxCash: 9999999999,
 		minCash: 0,
@@ -121,6 +122,7 @@ export const INVESTMENT_STRATEGIES = [
 			crypto: 5,
 			gold: 5,
 			bonds: 20,
+			realEstate: 0,
 		},
 		maxCash: 100000,
 		minCash: 50000,
@@ -135,6 +137,7 @@ export const INVESTMENT_STRATEGIES = [
 			crypto: 7,
 			gold: 8,
 			bonds: 3,
+			realEstate: 0,
 		},
 		maxCash: 75000,
 		minCash: 30000,
@@ -149,6 +152,7 @@ export const INVESTMENT_STRATEGIES = [
 			crypto: 15,
 			gold: 7,
 			bonds: 0,
+			realEstate: 0,
 		},
 		maxCash: 50000,
 		minCash: 30000,
@@ -163,6 +167,7 @@ export const INVESTMENT_STRATEGIES = [
 			crypto: 30,
 			gold: 19,
 			bonds: 0,
+			realEstate: 0,
 		},
 		maxCash: 50000,
 		minCash: 30000,
@@ -172,7 +177,7 @@ export const INVESTMENT_STRATEGIES = [
 
 // Get some sample values here:
 // https://www.moneysupermarket.com/mortgages/rates-table/home-purchase?propertyValue=465700&depositAmount=120000&requiredTerm=15&repaymentMethod=Repayment&region=England&sortResultsBy=MonthlyCost&addFeesToBalance=false&noProductFees=false&decisionInPrincipleProducts=false&page=1&showGreen=true&showCurrentAccount=true&onlySharedOwnership=false&onlySharedEquity=false&onlyOffset=false&onlyFamilyAssist=false&onlyRetirementInterestOnly=false&affordabilityOutcomesSet=true&affordabilityOutcomes=VeryLikely&affordabilityOutcomes=Likely&affordabilityOutcomes=Unlikely&journeyType=HomePurchase&userSegment=Browse
-export const MORTGAGES = [
+export const MORTGAGES : MortgageParams[] = [
 	{
 		name: '2 Fix 75% LTV (Nationwide)',
 		interestRate: 0.0362,
