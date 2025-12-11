@@ -6,164 +6,12 @@ import GlobalAssumptionsForm from './components/forms/GlobalAssumptions'
 import { InvestmentStrategyEditor } from './components/forms/InvestmentStrategies'
 import { MortgageEditor } from './components/forms/Mortgages'
 import { simulateMortgageFree, simulateMortgage, getPortfolioTotal, compoundInterest, computeInflationMultiples } from './lib/simcore'
+import * as DATA from './lib/data'
 
 function useAppData() {
-	const [globalAssumptions, setGlobalAssumptions] = React.useState({
-		openingSavings: 345000,
-		propertyPrice: 450000,
-		freeCashFlow: 3000,
-		equivalentRent: 1050,
-		expectedReturns: {
-			cash: 0.03,
-			stocks: 0.08,
-			crypto: 0.12,
-			gold: 0.04,
-			bonds: 0.04,
-			realEstate: 0.032,
-		},
-		inflationRate: 0.03,
-		houseMaintenancePercentage: 0.01,
-		simulationYears: 40,
-	})
-
-	const [investmentStrategies, setInvestmentStrategies] = React.useState([
-		{
-			id: 'cash-only',
-			name: 'Cash Only',
-			allocationWeights: {
-				cash: 100,
-				stocks: 0,
-				crypto: 0,
-				gold: 0,
-				bonds: 0,
-			},
-			maxCash: 9999999999,
-			minCash: 0,
-			rebalanceFrequency: 0,
-		},
-		{
-			id: 'conservative',
-			name: 'Conservative',
-			allocationWeights: {
-				cash: 5,
-				stocks: 65,
-				crypto: 5,
-				gold: 5,
-				bonds: 20,
-			},
-			maxCash: 100000,
-			minCash: 50000,
-			rebalanceFrequency: 12,
-		},
-		{
-			id: 'balanced',
-			name: 'Balanced',
-			allocationWeights: {
-				cash: 3,
-				stocks: 85,
-				crypto: 7,
-				gold: 5,
-				bonds: 0,
-			},
-			maxCash: 75000,
-			minCash: 30000,
-			rebalanceFrequency: 12,
-		},
-		{
-			id: 'aggressive',
-			name: 'Aggressive',
-			allocationWeights: {
-				cash: 3,
-				stocks: 85,
-				crypto: 12,
-				gold: 0,
-				bonds: 0,
-			},
-			maxCash: 50000,
-			minCash: 15000,
-			rebalanceFrequency: 12,
-		},
-	]);
-
-	const [mortgages, setMortgages] = React.useState([
-		// Get some sample values here:
-		// https://www.moneysupermarket.com/mortgages/rates-table/home-purchase?propertyValue=465700&depositAmount=120000&requiredTerm=15&repaymentMethod=Repayment&region=England&sortResultsBy=MonthlyCost&addFeesToBalance=false&noProductFees=false&decisionInPrincipleProducts=false&page=1&showGreen=true&showCurrentAccount=true&onlySharedOwnership=false&onlySharedEquity=false&onlyOffset=false&onlyFamilyAssist=false&onlyRetirementInterestOnly=false&affordabilityOutcomesSet=true&affordabilityOutcomes=VeryLikely&affordabilityOutcomes=Likely&affordabilityOutcomes=Unlikely&journeyType=HomePurchase&userSegment=Browse
-		{
-			name: '2 Fix 75% LTV (Nationwide)',
-			interestRate: 0.0362,
-			ltv: 0.75,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 1499,
-		},
-		{
-			name: '5 Fix 75% LTV (Nationwide)',
-			interestRate: 0.0378,
-			ltv: 0.75,
-			term: 15,
-			fixedPeriod: 5,
-			arrangementFee: 1499,
-		},
-		{
-			name: '2 Fix 80% LTV (Santander)',
-			interestRate: 0.0355,
-			ltv: 0.8,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 899 + 80 + 35,
-		},
-		{
-			name: '2 Fix 90% LTV (Santander)',
-			interestRate: 0.0409,
-			ltv: 0.9,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 999 + 225,
-		},
-		{
-			name: '5 Fix 90% LTV (Santander)',
-			interestRate: 0.0425,
-			ltv: 0.9,
-			term: 15,
-			fixedPeriod: 5,
-			arrangementFee: 999 + 225,
-		},
-		{
-			name: '2 Fix 49% LTV (Santander)',
-			interestRate: 0.0355,
-			ltv: 0.45,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 899 + 80 + 35,
-		},
-		{
-			name: '2 Fix 33% LTV (Santander)',
-			interestRate: 0.0355,
-			ltv: 0.3333333333333333,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 899 + 80 + 35,
-		},
-		{
-			name: '2 Fix 85% LTV (Lloyds)',
-			interestRate: 0.0383,
-			ltv: 0.85,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 999 + 100,
-		},
-		{
-			name: '5 Fix 85% LTV (Lloyds)',
-			interestRate: 0.0398,
-			ltv: 0.85,
-			term: 15,
-			fixedPeriod: 2,
-			arrangementFee: 999 + 100,
-		},
-	].map((m, i) => ({
-		...m,
-		id: `mortgage-${i}`,
-	})));
+	const [globalAssumptions, setGlobalAssumptions] = React.useState(DATA.GLOBAL_ASSUMPTIONS)
+	const [investmentStrategies, setInvestmentStrategies] = React.useState(DATA.INVESTMENT_STRATEGIES)
+	const [mortgages, setMortgages] = React.useState(DATA.MORTGAGES)
 
 	return {
 		globalAssumptions,
@@ -331,7 +179,7 @@ function SimResults({
 								<input type="checkbox" checked={displayReal} onChange={() => setDisplayReal(!displayReal)} />
 							</label>
 						</Table.Header>
-						<Table.Header rowSpan={2} thickLeft>Est<br />House<br />Worth</Table.Header>
+						<Table.Header rowSpan={2} thickLeft className="min-w-[100px]">Est<br />House<br />Worth</Table.Header>
 						<Table.Header rowSpan={2} thickLeft>
 							<div className="flex flex-col gap-1 p-1 max-w-[160px]">
 								<div className="text-sm font-bold">No Mortgage</div>
@@ -404,18 +252,20 @@ function SimResults({
 					<Table.Row>
 						{scenarios.map(scenario => (
 							<React.Fragment key={scenario.id}>
-								<Table.Header thickLeft>Principle</Table.Header>
-								<Table.Header>Equity</Table.Header>
-								<Table.Header>Savings</Table.Header>
-								<Table.Header>Net Worth</Table.Header>
+								<Table.Header thickLeft className='min-w-[100px]'>Principle</Table.Header>
+								<Table.Header className='min-w-[100px]'>Equity</Table.Header>
+								<Table.Header className='min-w-[100px]'>Savings</Table.Header>
+								<Table.Header className='min-w-[100px]'>Net Worth</Table.Header>
 							</React.Fragment>
 						))}
 					</Table.Row>
 				</Table.Head>
 				<Table.Body>
-					{SIM_INDICIES.map((index) => (
-						<Table.Row key={index}>
-							<Table.Cell thickRight>{Math.floor((index) / 12)}</Table.Cell>
+					{SIM_INDICIES.map((index) => {
+						const inflMult = displayReal ? inflationMultiples[index] : 1;
+						return (
+							<Table.Row key={index} inflMult={inflMult}>
+								<Table.Cell thickRight>{Math.floor((index) / 12) + 28}</Table.Cell>
 							<Table.Cell thickLeft thickRight>{inflationMultiples[index].toFixed(2)}</Table.Cell>
 							<Table.Cell.Pounds thickLeft>
 								{compoundInterest(globalAssumptions.propertyPrice, globalAssumptions.expectedReturns.realEstate, index)}
@@ -441,7 +291,9 @@ function SimResults({
 							})}
 							<Table.Cell thickLeft></Table.Cell>
 						</Table.Row>
-					))}
+						)
+					}
+					)}
 				</Table.Body>
 			</Table>
 		</Card>

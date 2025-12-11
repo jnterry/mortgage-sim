@@ -26,10 +26,16 @@ function TableBody({ children }) {
 	)
 }
 
-function TableRow({ children }) {
+const RowContext = React.createContext({
+	inflMult: 1,
+});
+
+function TableRow({ children, inflMult = 1 }) {
 	return (
 		<tr>
-			{children}
+			<RowContext.Provider value={{ inflMult }}>
+				{children}
+			</RowContext.Provider>
 		</tr>
 	)
 }
@@ -57,9 +63,10 @@ function TableCellNumber({ children }) {
 }
 
 function TableCellPounds({ children, ...props }) {
+	const { inflMult } = React.useContext(RowContext);
 	// Reformat with commas
 	const formattedValue = typeof children === 'number'
-		? children.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0]
+		? (children * inflMult).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0]
 		: children
 	return (
 		<TableCell className="text-right" {...props}>
@@ -68,9 +75,16 @@ function TableCellPounds({ children, ...props }) {
 	)
 }
 
+function formatPounds(value) {
+	const str = Number(value).toFixed(2)
+	const [whole, decimal] = str.split('.')
+	return `£${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+}
+
 function TableCellPortfolio({ portfolio, ...props }) {
-	const total = getPortfolioTotal(portfolio)
-	const formattedTotal = total.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0]
+	const { inflMult } = React.useContext(RowContext);
+	const total = getPortfolioTotal(portfolio) * inflMult;
+	const formattedTotal = formatPounds(total)
 
 	const assetClasses = [
 		{ key: 'cash', label: 'Cash' },
@@ -85,9 +99,9 @@ function TableCellPortfolio({ portfolio, ...props }) {
 		.filter(ac => portfolio[ac.key] > 0)
 		.map(ac => ({
 			...ac,
-			value: portfolio[ac.key],
-			formatted: portfolio[ac.key].toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0],
-			percentage: ((portfolio[ac.key] / total) * 100).toFixed(1)
+			value: portfolio[ac.key] * inflMult,
+			formatted: formatPounds(portfolio[ac.key] * inflMult),
+			percentage: (((portfolio[ac.key] * inflMult) / total) * 100).toFixed(1)
 		}))
 		.sort((a, b) => b.value - a.value)
 
@@ -114,7 +128,7 @@ function TableCellPortfolio({ portfolio, ...props }) {
 	)
 }
 
-function TableHeader({ children, thickLeft, thickRight, thickTop, thickBottom, ...props }) {
+function TableHeader({ children, thickLeft, thickRight, thickTop, thickBottom, className = '', ...props }) {
 	const thickClasses = []
 	if (thickLeft) thickClasses.push('border-l-2 border-l-black')
 	if (thickRight) thickClasses.push('border-r-2 border-r-black')
@@ -122,7 +136,7 @@ function TableHeader({ children, thickLeft, thickRight, thickTop, thickBottom, .
 	if (thickBottom) thickClasses.push('border-b-2 border-b-black')
 
 	return (
-		<th className={`font-bold bg-gray-200 border border-gray-200 border-solid ${thickClasses.join(' ')}`} {...props}>
+		<th className={`font-bold bg-gray-200 border border-gray-200 border-solid ${thickClasses.join(' ')} ${className}`} {...props}>
 			{children}
 		</th>
 	)
