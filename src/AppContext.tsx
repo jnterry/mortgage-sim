@@ -30,6 +30,12 @@ interface ScenarioParams {
 	id: string
 	mortgageId: string
 	investmentStrategyId: string
+
+	/**
+	 * Override the default mortgage term - this doesn't affect the mortgage rates etc so is safe to
+	 * override per scenario
+	 */
+	termOverride: number | null
 }
 
 export function useAppState(data: AppData) {
@@ -68,8 +74,9 @@ export function useAppState(data: AppData) {
 				const newId = `scenario-${Date.now()}`
 				setScenarios(old => [...old, {
 					id: newId,
-					investmentStrategyId: data.investmentStrategies[0]?.id!,
+					investmentStrategyId: baselineStrategyId || data.investmentStrategies[0]?.id!,
 					mortgageId: data.mortgages[0]?.id!,
+					termOverride: null,
 				}])
 			},
 			remove: (id: string) => {
@@ -90,6 +97,7 @@ export interface ScenarioResults {
 	id: string
 	strategy: InvestmentStrategy
 	mortgage: MortgageParams
+	termOverride: number | null
 	results: SimulationResultRow[]
 }
 
@@ -118,7 +126,7 @@ export interface AppContextType {
 		add: () => void
 		remove: (id: string) => void
 		update: (id: string, updates: Partial<ScenarioParams>) => void
-		view: (scenario: ScenarioParams) => void
+		view: (scenario: ScenarioResults) => void
 	}
 
 	displayReal: {
@@ -131,8 +139,10 @@ const AppContext = React.createContext<AppContextType | null>(null)
 
 export function AppContextProvider({ children }: { children: React.ReactNode }) {
 
+
 	const data = useAppData()
 	const state = useAppState(data)
+	console.log('scenarios', state.scenarios.items)
 
 	const inflationMultiples = React.useMemo(() => {
 		return computeInflationMultiples(data.globalAssumptions.inflationRate, data.globalAssumptions.simulationYears * 12)
@@ -156,7 +166,11 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 				id: scenario.id,
 				strategy,
 				mortgage,
-				results: simulateMortgage(data.globalAssumptions, strategy, mortgage),
+				termOverride: scenario.termOverride,
+				results: simulateMortgage(data.globalAssumptions, strategy, {
+					...mortgage,
+					term: scenario.termOverride || mortgage.term,
+				}),
 			}
 		}).filter(Boolean)
 	}, [state.scenarios, data.investmentStrategies, data.mortgages, data.globalAssumptions])

@@ -44,7 +44,7 @@ function Content() {
 					/>
 				</Card>
 			</div>
-			<Card className="max-w-[1400px] mx-auto overflow-x-auto">
+			<Card className="max-w-[99vw] mx-auto overflow-x-auto">
 				<ScenarioTable />
 			</Card>
 		</main>

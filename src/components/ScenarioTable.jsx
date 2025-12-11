@@ -1,5 +1,5 @@
 import React from 'react'
-import { Table, Button, ListSelect } from './UI'
+import { Table, Button, ListSelect, InputNumber } from './UI'
 import { getPortfolioTotal } from '../lib/simcore'
 import { useAppContext } from '../AppContext'
 
@@ -43,7 +43,7 @@ export default function ScenarioTable() {
 							<React.Fragment key={scenario.id}>
 								<Table.Header colSpan={5} thickLeft thickRight>
 									<div className="flex flex-col gap-1 p-1">
-										<div className="flex items-center gap-1">
+										<div className="flex items-center gap-3">
 											<div>
 
 												<ListSelect
@@ -63,21 +63,29 @@ export default function ScenarioTable() {
 													className="block flex-1"
 												/>
 											</div>
-
-												<Button
-													variant="secondary"
-													size="small"
+											<div>
+												<label className="w-full flex flex-row items-center">
+													<span>Term</span>
+													<InputNumber
+														size="sm"
+														value={scenario.termOverride || scenario.mortgage.term}
+														setValue={(val) => ctx.scenarios.update(scenario.id, { termOverride: parseInt(val) ? parseInt(val) : null })}
+													/>
+												</label>
+												<div className="flex flex-row items-center gap-3 w-full justify-end">
+													<span className="cursor-pointer text-blue-500 underline"
 													onClick={() => ctx.scenarios.view(scenario)}
 												>
 													View
-												</Button>
-												<Button
-													variant="error"
-													size="small"
+													</span>
+													<span className="cursor-pointer text-red-500 underline"
 													onClick={() => ctx.scenarios.remove(scenario.id)}
 												>
 													Del
-											</Button>
+													</span>
+												</div>
+											</div>
+
 										</div>
 									</div>
 								</Table.Header>
