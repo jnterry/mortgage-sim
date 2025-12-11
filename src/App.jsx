@@ -67,6 +67,7 @@ function useAppData() {
 			},
 			maxCash: 75000,
 			minCash: 30000,
+			rebalanceFrequency: 12,
 		},
 		{
 			id: 'aggressive',
@@ -80,6 +81,7 @@ function useAppData() {
 			},
 			maxCash: 50000,
 			minCash: 15000,
+			rebalanceFrequency: 12,
 		},
 	]);
 
