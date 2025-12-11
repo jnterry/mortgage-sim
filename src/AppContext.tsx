@@ -173,8 +173,6 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 	}, [data.globalAssumptions])
 
 
-	console.log('global assumptions', data.globalAssumptions);
-
 	const ctx = React.useMemo(() => {
 		return {
 			data,

@@ -122,7 +122,7 @@ function TableCellPortfolio({ portfolio, ...props }) {
 					</div>
 				}
 			>
-				<span className="cursor-pointer underline decoration-dotted">{formattedTotal}</span>
+				<span className={`cursor-pointer underline decoration-dotted ${total < 0 ? 'text-red-500' : ''}`}>{formattedTotal}</span>
 			</TriggeredPopover>
 		</TableCell>
 	)

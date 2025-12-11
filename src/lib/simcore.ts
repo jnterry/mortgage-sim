@@ -83,7 +83,7 @@ export const EMPTY_PORTFOLIO: InvestmentPortfolio = {
 	realEstate: 0,
 }
 
-export function getPortfolioTotal(portfolio: InvestmentPortfolio): number {
+export function getPortfolioTotal(portfolio: Record<any, number> | InvestmentPortfolio | PurchaseFees): number {
 	return Object.values(portfolio).reduce((acc, value) => acc + value, 0);
 }
 
@@ -269,8 +269,6 @@ export function computePurchaseFees(propertyPrice: number, isFtb: boolean): Purc
 }
 
 export function computeIncomeAndExpenses(ga: GlobalAssumptions): { income: number, expenses: number }[] {
-
-	console.log('ga.yearCurve', ga.yearCurve);
 	const CURVE = YEAR_CURVES[ga.yearCurve];
 
 	const result: { income: number, expenses: number }[] = [];
@@ -289,22 +287,28 @@ export function computeIncomeAndExpenses(ga: GlobalAssumptions): { income: numbe
 }
 
 export function simulateMortgageFree(ga: GlobalAssumptions, strategy: InvestmentStrategy): SimulationResultRow[] {
+	const pnl = computeIncomeAndExpenses(ga);
+
 	let lastPortfolio: InvestmentPortfolio = {
 		...EMPTY_PORTFOLIO,
 		cash: ga.openingSavings,
 	};
 
-	const pnl = computeIncomeAndExpenses(ga);
-
 	let results: SimulationResultRow[] = [];
 	results.push({
 		home: { principal: 0, worth: ga.propertyPrice },
 		investments: lastPortfolio,
-		savingsFlow: pnl[0].income - pnl[0].expenses - ga.equivalentRent,
+		savingsFlow: pnl[0].income - pnl[0].expenses - ga.equivalentRent
 	});
 
 	for(let step = 1; step <= ga.simulationYears*12; ++step) {
-		const extraDeposit = pnl[step].income - pnl[step].expenses - compoundInterest(ga.equivalentRent, ga.expectedReturns.realEstate, step);
+		const extraDeposit = pnl[step].income - pnl[step].expenses - compoundInterest(
+			ga.equivalentRent,
+			// Rent typically tracks inflation. I'm not sure this will hold in a high inflation environment,
+			// so as a simplified estimate/assumption, we take the average of real estate returns and inflation
+			(ga.expectedReturns.realEstate + ga.inflationRate)/12,
+			step
+	  );
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
 			strategy: strategy,
@@ -329,10 +333,11 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 	let results: SimulationResultRow[] = [];
 
 	const deposit = ga.propertyPrice * (1 - mortgage.ltv);
+	const purchaseFees = computePurchaseFees(ga.propertyPrice, false);
 
 	let lastPortfolio: InvestmentPortfolio = {
 		...EMPTY_PORTFOLIO,
-		cash: ga.openingSavings - deposit,
+		cash: ga.openingSavings - deposit - getPortfolioTotal(purchaseFees),
 	};
 
 	let lastHome: HomeStats = {
@@ -350,6 +355,19 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 	})
 
 	for(let step = 1; step <= ga.simulationYears*12; ++step) {
+
+		let extraDelta = 0
+		if(step % 12 === 0) {
+			// Then its the start of a new year
+			let year = Math.floor(step/12);
+			if(year % mortgage.fixedPeriod === 0) {
+				// Then its the start of a new fixed period
+				// This is a gross simplication, since we cant guess future intrest rates, we just assume
+				// there is a remortgage fee and then we get onto the same terms as before
+				extraDelta = -mortgage.arrangementFee
+			}
+		}
+
 		let nextHome = {
 			principal: lastHome.principal * (1 + mortgage.interestRate / 12),
 			worth: lastHome.worth * (1 + ga.expectedReturns.realEstate / 12),
@@ -358,7 +376,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		let repayment = Math.min(nextHome.principal, mortgageRepayment);
 		nextHome.principal -= repayment;
 
-		let savingsFlow = pnl[step].income - pnl[step].expenses - repayment - nextHome.worth * ga.houseMaintenancePercentage / 12;
+		let savingsFlow = pnl[step].income - pnl[step].expenses - repayment - nextHome.worth * ga.houseMaintenancePercentage / 12 + extraDelta;
 
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
