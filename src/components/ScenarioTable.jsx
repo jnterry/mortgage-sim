@@ -5,7 +5,8 @@ import { useAppContext } from '../AppContext'
 
 export default function ScenarioTable() {
 	const ctx = useAppContext();
-	const SIM_INDICIES = new Array(ctx.data.globalAssumptions.simulationYears).fill(0).map((_, i) => i * 12)
+	//const SIM_INDICIES = new Array(ctx.data.globalAssumptions.simulationYears).fill(0).map((_, i) => i * 12)
+	const SIM_INDICIES = new Array(ctx.computed.baseline.length).fill(0).map((_, i) => i)
 
 	const investStratList = ctx.data.investmentStrategies.map(s => ({ value: s.id, label: s.name }));
 	const mortgageList = ctx.data.mortgages.map(m => ({ value: m.id, label: m.name }));

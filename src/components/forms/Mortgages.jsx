@@ -1,5 +1,5 @@
 import React from 'react'
-import { LiveForm, InputNumber, InputPercent, InputText, Field, Button } from '../UI'
+import { LiveForm, InputNumber, InputPercent, InputText, Field, Button, Checkbox } from '../UI'
 import ListEditor from '../ListEditor'
 import { computeMortgageRepayment, computePurchaseFees } from '../../lib/simcore'
 
@@ -40,6 +40,8 @@ export function MortgageForm({ value, setValue, globalAssumptions }) {
 				</Field>
 
 				<LiveForm.Field name="ltv" label="Loan to Value" input={{ Tag: InputPercent }} />
+
+				<LiveForm.Field name="isRepayment" label="Is Repayment?" input={{ Tag: Checkbox }} />
 
 				<Field label="Deposit">
 					<span>£{deposit}</span>

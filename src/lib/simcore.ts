@@ -120,13 +120,23 @@ export interface MortgageParams {
 
 	/** Cost of arranging the mortgage */
 	arrangementFee: number;
+
+	/** Whether the mortgage is a repayment mortgage such that the principal is reduced over time */
+	isRepayment: boolean;
+
+	/** Whether the mortgage is an offset mortgage such that cash savings can be used to decrease interest payments */
+	isOffset: boolean;
 }
 
 export function computeMortgageRepayment(principal: number, params: MortgageParams): number {
-	let r = params.interestRate / 12;
-  let n = params.term * 12;
+	if(params.isRepayment) {
+		let r = params.interestRate / 12;
+		let n = params.term * 12;
 
-	return principal * (r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1));
+		return principal * (r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1));
+	} else {
+		return principal * (params.interestRate / 12);
+	}
 }
 
 export interface HomeStats {
@@ -341,8 +351,9 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		cash: ga.openingSavings - deposit - getPortfolioTotal(purchaseFees),
 	};
 
+	const initialBorrowed = ga.propertyPrice - deposit;
 	let lastHome: HomeStats = {
-		principal: ga.propertyPrice - deposit,
+		principal: initialBorrowed,
 		worth: ga.propertyPrice,
 	}
 
@@ -356,7 +367,6 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 	})
 
 	for(let step = 1; step <= ga.simulationYears*12; ++step) {
-
 		let extraDelta = 0
 		if(step % 12 === 1 && step !== 1) {
 			// Then its the start of a new year
@@ -374,8 +384,16 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 			worth: lastHome.worth * (1 + ga.expectedReturns.realEstate / 12),
 		}
 
-		let repayment = Math.min(nextHome.principal, mortgageRepayment);
+		const repayment = Math.min(nextHome.principal, mortgageRepayment);
 		nextHome.principal -= repayment;
+
+		let forceRebalance = false;
+		if(step === 12 * mortgage.term && !mortgage.isRepayment) {
+			// Then its the end of a interest only mortgage so we need to payoff the the remaining balance
+			extraDelta = -lastHome.principal;
+			nextHome.principal = 0;
+			forceRebalance = true;
+		}
 
 		let savingsFlow = pnl[step].income - pnl[step].expenses - repayment - (nextHome.worth * ga.houseMaintenancePercentage / 12) + extraDelta;
 
@@ -384,7 +402,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 			strategy: strategy,
 			expectedReturns: ga.expectedReturns,
 			extraDeposit: savingsFlow,
-			rebalance: strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0,
+			rebalance: (strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0) || forceRebalance,
 		});
 
 
