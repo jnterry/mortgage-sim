@@ -31,7 +31,7 @@ export function MortgageForm({ value, setValue, globalAssumptions }) {
 
 				<LiveForm.Field name="interestRate" label="Interest Rate" input={{ Tag: InputPercent }} />
 				<div />
-				<LiveForm.Field name="term" label="Term" input={{ Tag: InputNumber }} />
+				<LiveForm.Field name="term" label="Default Term" input={{ Tag: InputNumber }} />
 				<LiveForm.Field name="fixedPeriod" label="Fixed Period" input={{ Tag: InputNumber }} />
 
 				<LiveForm.Field name="arrangementFee" label="Arrangement Fee" input={{ Tag: InputNumber, prefix: '£' }} />

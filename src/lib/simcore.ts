@@ -306,7 +306,8 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 			ga.equivalentRent,
 			// Rent typically tracks inflation. I'm not sure this will hold in a high inflation environment,
 			// so as a simplified estimate/assumption, we take the average of real estate returns and inflation
-			(ga.expectedReturns.realEstate + ga.inflationRate)/12,
+			(ga.expectedReturns.realEstate + ga.inflationRate)/2,
+			//ga.inflationRate,
 			step
 	  );
 		let nextPortfolio = stepPortfolio({
@@ -351,13 +352,13 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 	results.push({
 		home: lastHome,
 		investments: lastPortfolio,
-		savingsFlow: pnl[0].income - pnl[0].expenses - mortgageRepayment,
+		savingsFlow: pnl[0].income - pnl[0].expenses - mortgageRepayment - lastHome.worth * ga.houseMaintenancePercentage / 12,
 	})
 
 	for(let step = 1; step <= ga.simulationYears*12; ++step) {
 
 		let extraDelta = 0
-		if(step % 12 === 0) {
+		if(step % 12 === 1 && step !== 1) {
 			// Then its the start of a new year
 			let year = Math.floor(step/12);
 			if(year % mortgage.fixedPeriod === 0) {
@@ -376,7 +377,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		let repayment = Math.min(nextHome.principal, mortgageRepayment);
 		nextHome.principal -= repayment;
 
-		let savingsFlow = pnl[step].income - pnl[step].expenses - repayment - nextHome.worth * ga.houseMaintenancePercentage / 12 + extraDelta;
+		let savingsFlow = pnl[step].income - pnl[step].expenses - repayment - (nextHome.worth * ga.houseMaintenancePercentage / 12) + extraDelta;
 
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
