@@ -174,6 +174,7 @@ export function stepPortfolio(args: {
 	expectedReturns: AssetClassNumbers,
 	extraDeposit: number,
 	rebalance: boolean,
+	inflationMultiple: number,
 }): InvestmentPortfolio {
 
 	let next : InvestmentPortfolio = { ...args.portfolio };
@@ -183,7 +184,7 @@ export function stepPortfolio(args: {
 		let total = getPortfolioTotal(args.portfolio)
 		next = {
 			...EMPTY_PORTFOLIO,
-			cash: Math.min(args.strategy.minCash, total),
+			cash: Math.min(args.strategy.minCash * args.inflationMultiple, total),
 		};
 
     let remaining = total - next.cash;
@@ -192,8 +193,8 @@ export function stepPortfolio(args: {
 
 		// Allocate remaining to other asset classes in the strategy's proportions
 		let extraCash = remaining * (args.strategy.allocationWeights.cash / totalWeight);
-		if(next.cash + extraCash > args.strategy.maxCash) {
-			next.cash = args.strategy.maxCash;
+		if(next.cash + extraCash > args.strategy.maxCash * args.inflationMultiple) {
+			next.cash = args.strategy.maxCash * args.inflationMultiple;
 		} else {
 			next.cash += extraCash;
 		}
@@ -210,7 +211,7 @@ export function stepPortfolio(args: {
 
 	// Simulate additional deposits
 	let additionWeights = { ...args.strategy.allocationWeights };
-	if(next.cash >= args.strategy.maxCash) {
+	if(next.cash >= args.strategy.maxCash * args.inflationMultiple) {
 		additionWeights.cash = 0;
 	}
 	let additions = allocateValueByWeights(args.extraDeposit, additionWeights);
@@ -326,6 +327,7 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 			expectedReturns: ga.expectedReturns,
 			extraDeposit,
 			rebalance: strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0,
+			inflationMultiple: compoundInterest(1, ga.inflationRate, step),
 		});
 
 		results.push({
@@ -380,11 +382,22 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		}
 
 		let nextHome = {
-			principal: lastHome.principal * (1 + mortgage.interestRate / 12),
+			principal: lastHome.principal,
 			worth: lastHome.worth * (1 + ga.expectedReturns.realEstate / 12),
 		}
 
-		const repayment = Math.min(nextHome.principal, mortgageRepayment);
+		let repayment: number;
+		if(mortgage.isOffset) {
+			// Calculate effective balance (principal minus offset cash) before adding interest
+			let effectiveBalance = Math.max(0, lastHome.principal - lastPortfolio.cash);
+			let chargeableBalance = effectiveBalance;
+
+			// Add interest only on the chargeable balance
+			nextHome.principal += chargeableBalance * (mortgage.interestRate / 12);
+		} else {
+			nextHome.principal *= (1 + mortgage.interestRate / 12);
+		}
+		repayment = Math.min(nextHome.principal, mortgageRepayment);
 		nextHome.principal -= repayment;
 
 		let forceRebalance = false;
@@ -403,6 +416,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 			expectedReturns: ga.expectedReturns,
 			extraDeposit: savingsFlow,
 			rebalance: (strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0) || forceRebalance,
+			inflationMultiple: compoundInterest(1, ga.inflationRate, step),
 		});
 
 
