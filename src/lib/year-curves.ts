@@ -85,14 +85,14 @@ const YEAR_CURVE_REALISTIC: YearCurveValues[] = [
 	{ year: 2027, age: 29, income: 1.02, expenses: 1.00 },
 	{ year: 2028, age: 30, income: 1.04, expenses: 1.00 },
 	{ year: 2029, age: 31, income: 0.80, expenses: 1.30 }, // children, expenses rise, maternity decreases income
-	{ year: 2030, age: 32, income: 0.70, expenses: 1.60 }, // yr1
-	{ year: 2031, age: 33, income: 0.50, expenses: 2.00 }, // yr2 assume 2nd child
-	{ year: 2032, age: 34, income: 0.50, expenses: 2.20 }, // yr3
-	{ year: 2033, age: 35, income: 0.50, expenses: 2.30 }, // yr4
-	{ year: 2034, age: 36, income: 0.50, expenses: 2.30 }, // yr5
-	{ year: 2035, age: 37, income: 0.50, expenses: 2.00 }, // yr6 - school starting child 1
-	{ year: 2036, age: 38, income: 0.50, expenses: 2.00 }, // yr7
-	{ year: 2037, age: 39, income: 0.80, expenses: 1.75 }, // yr8 - school starting child 2
+	{ year: 2030, age: 32, income: 0.70, expenses: 1.30 }, // yr1
+	{ year: 2031, age: 33, income: 0.50, expenses: 1.60 }, // yr2 assume 2nd child
+	{ year: 2032, age: 34, income: 0.50, expenses: 1.60 }, // yr3
+	{ year: 2033, age: 35, income: 0.50, expenses: 1.60 }, // yr4
+	{ year: 2034, age: 36, income: 0.50, expenses: 1.60 }, // yr5
+	{ year: 2035, age: 37, income: 0.50, expenses: 1.60 }, // yr6 - school starting child 1
+	{ year: 2036, age: 38, income: 0.50, expenses: 1.60 }, // yr7
+	{ year: 2037, age: 39, income: 0.80, expenses: 1.60 }, // yr8 - school starting child 2
 	{ year: 2038, age: 40, income: 0.83, expenses: 1.60 }, // 9
 	{ year: 2039, age: 41, income: 0.86, expenses: 1.60 }, // 10
 	{ year: 2040, age: 42, income: 0.90, expenses: 1.60 }, // 11

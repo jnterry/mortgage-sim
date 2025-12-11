@@ -3,7 +3,6 @@ import { Button } from './UI'
 
 export default function ListEditor({ selectedId, setSelectedId, value, setValue, FormRenderer, formProps = {} }) {
 	const selected = value.find((strategy) => strategy.id === selectedId);
-
 	return (
 		<div className="grid grid-cols-2 gap-4">
 			<div className="border-r-solid border-gray-500 border-r-2 overflow-y-auto">
@@ -47,7 +46,14 @@ export default function ListEditor({ selectedId, setSelectedId, value, setValue,
 					</div>
 					<FormRenderer
 						value={selected}
-						setValue={v => setValue(value.map(s => s.id === selected.id ? v : s))}
+						setValue={arg => {
+							setValue(old => {
+								return old.map(s => {
+									if (s.id !== selected.id) return s;
+									return typeof arg === 'function' ? arg(s) : arg;
+								})
+							})
+						}}
 						{...formProps}
 					/>
 				</div>

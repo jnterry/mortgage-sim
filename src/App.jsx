@@ -1,10 +1,9 @@
 import './App.css'
 import React from 'react'
-import { Card, Table, Button } from './components/UI'
+import { Card } from './components/UI'
 import GlobalAssumptionsForm from './components/forms/GlobalAssumptions'
 import { InvestmentStrategyEditor } from './components/forms/InvestmentStrategies'
 import { MortgageEditor } from './components/forms/Mortgages'
-import { simulateMortgageFree, simulateMortgage, getPortfolioTotal, compoundInterest, computeInflationMultiples } from './lib/simcore'
 import { AppContextProvider, useAppContext } from './AppContext'
 import ScenarioTable from './components/ScenarioTable'
 
