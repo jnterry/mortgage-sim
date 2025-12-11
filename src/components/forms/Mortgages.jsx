@@ -16,7 +16,11 @@ export function MortgageForm({ value, setValue, globalAssumptions }) {
 	const deposit = Math.round(globalAssumptions.propertyPrice * (1 - value.ltv));
 	const principal = globalAssumptions.propertyPrice - deposit;
 	const repayment = computeMortgageRepayment(principal, value);
-	const savingsFlow = (globalAssumptions.incomePa - globalAssumptions.expensesPa) / 12 - repayment - globalAssumptions.propertyPrice * globalAssumptions.houseMaintenancePercentage / 12;
+	const savingsFlow = (
+		globalAssumptions.income1Pa
+		+ globalAssumptions.income2Pa
+		- globalAssumptions.expensesPa
+	) / 12 - repayment - globalAssumptions.propertyPrice * globalAssumptions.houseMaintenancePercentage / 12;
 	const expectedPurchaseFees = Object.values(computePurchaseFees(globalAssumptions.propertyPrice, true)).reduce((acc, fee) => acc + fee, 0) + (value.arrangementFee || 0);
 	const remainingSavings = globalAssumptions.openingSavings - deposit - expectedPurchaseFees;
 

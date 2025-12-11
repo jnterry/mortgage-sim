@@ -8,16 +8,17 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions = {
 	propertyPrice: 450000,
 
 	/** Assumed post tax income per annum at start of simulation */
-	incomePa: 64000,
+	income1Pa: 33800,
+	income2Pa: 28100,
 
 	/** Assumed expenses per annum at start of simulation - excluding housing */
-	expensesPa: 27000,
+	expensesPa: 26000,
 
 	/** If not purchasing a property, how much rent would be paid per month? */
 	equivalentRent: 1050,
 
 	/** Type of year curve to use to adjust income/expenses over time */
-	yearCurve: 'realistic',
+	yearCurve: 'jamie-flat-emily-4-maternity',
 
 	expectedReturns: {
 		// 2008 - 2022 ~0.75 for 14 years

@@ -29,13 +29,13 @@ export default function GlobalAssumptionsForm({ value, setValue }) {
 				</div>
 
 				<h3 className="text-lg font-bold" style={{ gridColumn: '1' }}>Self</h3>
-				<LiveForm.Field name="startYear" label="Start Year" input={{ Tag: InputNumber }} />
 				<LiveForm.Field name="startAge" label="Start Age" input={{ Tag: InputNumber }} />
-				<LiveForm.Field name="incomePa" label="Income / Year" input={{ Tag: InputNumber, prefix: '£' }} />
+				<LiveForm.Field name="income1Pa" label="Income1 / Year" input={{ Tag: InputNumber, prefix: '£' }} />
+				<LiveForm.Field name="income2Pa" label="Income2 / Year" input={{ Tag: InputNumber, prefix: '£' }} />
 				<LiveForm.Field name="expensesPa" label="Expenses / Year" input={{ Tag: InputNumber, prefix: '£' }} />
-				<LiveForm.Field name="yearCurve" label="Year Curve" input={{ Tag: ListSelect, list: Object.keys(YEAR_CURVES).map(key => ({ label: key, value: key })) }} />
+				<LiveForm.Field name="yearCurve" label="Year Curve" input={{ Tag: ListSelect, list: YEAR_CURVES.map(c => ({ label: c.name, value: c.key })) }} />
 				<Field label="Disposable Income">
-					£{Math.round((value.incomePa - value.expensesPa) / 12)} / month
+					£{Math.round((value.income1Pa + value.income2Pa - value.expensesPa) / 12)} / month
 				</Field>
 
 				<h3 className="text-lg font-bold" style={{ gridColumn: '1' }}>Investment<br />Returns</h3>

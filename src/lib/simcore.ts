@@ -38,7 +38,8 @@ export interface GlobalAssumptions {
 	startYear: number;
 
 	/** Assumed income per annum at start of simulation */
-	incomePa: number;
+	income1Pa: number;
+	income2Pa: number;
 
 	/** Assumed expenses per annum at start of simulation - excluding housing */
 	expensesPa: number;
@@ -279,17 +280,23 @@ export function computePurchaseFees(propertyPrice: number, isFtb: boolean): Purc
 	}
 }
 
-export function computeIncomeAndExpenses(ga: GlobalAssumptions): { income: number, expenses: number }[] {
-	const CURVE = YEAR_CURVES[ga.yearCurve];
+type PnlRow = { income: number, income1: number, income2: number, expenses: number };
 
-	const result: { income: number, expenses: number }[] = [];
+export function computeIncomeAndExpenses(ga: GlobalAssumptions): PnlRow[] {
+	const CURVE = YEAR_CURVES.find(c => c.key === ga.yearCurve)?.values || YEAR_CURVES[0].values;
+
+	const result: PnlRow[] = [];
 
 	for(let i = 0; i <= ga.simulationYears*12; ++i) {
 		const year = Math.floor(i/12);
-		const income = compoundInterest(ga.incomePa / 12, ga.inflationRate, year*12) * CURVE[year].income;
+		const income1 = compoundInterest(ga.income1Pa / 12, ga.inflationRate, year*12) * CURVE[year].income1;
+		const income2 = compoundInterest(ga.income2Pa / 12, ga.inflationRate, year*12) * CURVE[year].income2;
+		const income = income1 + income2;
 		const expenses = compoundInterest(ga.expensesPa / 12, ga.inflationRate, year*12) * CURVE[year].expenses;
 		result.push({
 			income,
+			income1,
+			income2,
 			expenses,
 		});
 	}
