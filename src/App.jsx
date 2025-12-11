@@ -5,7 +5,7 @@ import ListSelect from './components/UI/Input/ListSelect'
 import GlobalAssumptionsForm from './components/forms/GlobalAssumptions'
 import { InvestmentStrategyEditor } from './components/forms/InvestmentStrategies'
 import { MortgageEditor } from './components/forms/Mortgages'
-import { simulateMortgageFree, simulateMortgage, getPortfolioTotal, compoundInterest } from './lib/simcore'
+import { simulateMortgageFree, simulateMortgage, getPortfolioTotal, compoundInterest, computeInflationMultiples } from './lib/simcore'
 
 function useAppData() {
 	const [globalAssumptions, setGlobalAssumptions] = React.useState({
@@ -214,6 +214,10 @@ function App() {
 		setSelectedMortgage(scenario.mortgageId)
 	}, [])
 
+	const inflationMultiples = React.useMemo(() => {
+		return computeInflationMultiples(globalAssumptions.inflationRate, globalAssumptions.simulationYears * 12)
+	}, [globalAssumptions.inflationRate, globalAssumptions.simulationYears])
+
 	const noMortgageResults = React.useMemo(() => {
 		if (!noMortgageInvestStrat) return null
 		const strategy = investmentStrategies.find(s => s.id === noMortgageInvestStrat)
@@ -265,6 +269,7 @@ function App() {
 				</Card>
 			</div>
 			<SimResults
+				inflationMultiples={inflationMultiples}
 				scenarios={scenarioResults}
 				noMortgageResults={noMortgageResults}
 				investmentStrategies={investmentStrategies}
@@ -308,13 +313,24 @@ function SimResults({
 	removeScenario,
 	addScenario,
 	globalAssumptions,
+	inflationMultiples,
 }) {
+
+	const [displayReal, setDisplayReal] = React.useState(false);
+
 	return (
 		<Card className="max-w-[1400px] mx-auto overflow-x-auto">
 			<Table>
 				<Table.Head>
 					<Table.Row>
-						<Table.Header rowSpan={2}>Year</Table.Header>
+						<Table.Header rowSpan={2} thickRight>Year</Table.Header>
+						<Table.Header rowSpan={2} thickLeft thickRight>
+							<label className="cursor-pointer">
+								Infl
+								<br />
+								<input type="checkbox" checked={displayReal} onChange={() => setDisplayReal(!displayReal)} />
+							</label>
+						</Table.Header>
 						<Table.Header rowSpan={2} thickLeft>Est<br />House<br />Worth</Table.Header>
 						<Table.Header rowSpan={2} thickLeft>
 							<div className="flex flex-col gap-1 p-1 max-w-[160px]">
@@ -399,7 +415,8 @@ function SimResults({
 				<Table.Body>
 					{SIM_INDICIES.map((index) => (
 						<Table.Row key={index}>
-							<Table.Cell>{Math.floor((index) / 12)}</Table.Cell>
+							<Table.Cell thickRight>{Math.floor((index) / 12)}</Table.Cell>
+							<Table.Cell thickLeft thickRight>{inflationMultiples[index].toFixed(2)}</Table.Cell>
 							<Table.Cell.Pounds thickLeft>
 								{compoundInterest(globalAssumptions.propertyPrice, globalAssumptions.expectedReturns.realEstate, index)}
 							</Table.Cell.Pounds>

@@ -338,3 +338,16 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 
 	return results;
 }
+
+export function computeInflationMultiples(inflationRate: number, months: number): number[] {
+	let value = 1
+
+	let result: number[] = [1];
+
+	for(let i = 0; i < months; ++i) {
+		value *= (1 - inflationRate / 12);
+		result.push(value);
+	}
+
+	return result;
+}
