@@ -1,6 +1,6 @@
 import React from 'react'
 import * as DATA from './lib/data'
-import { compoundInterest, computeInflationMultiples, simulateMortgage, simulateMortgageFree, type GlobalAssumptions, type InvestmentStrategy, type MortgageParams, type SimulationResultRow } from './lib/simcore'
+import { compoundInterest, computeIncomeAndExpenses, computeInflationMultiples, simulateMortgage, simulateMortgageFree, type GlobalAssumptions, type InvestmentStrategy, type MortgageParams, type SimulationResultRow } from './lib/simcore'
 
 interface AppData {
 	globalAssumptions: GlobalAssumptions
@@ -35,7 +35,7 @@ interface ScenarioParams {
 export function useAppState(data: AppData) {
 
 	// Should numbers be displayed in real or nominal terms?
-	const [displayReal, setDisplayReal] = React.useState(false);
+	const [displayReal, setDisplayReal] = React.useState(true);
 
 	const [viewedStrategyId, setViewedStrategyId] = React.useState<string | null>(null);
 	const [viewedMortgageId, setViewedMortgageId] = React.useState<string | null>(null);
@@ -99,6 +99,7 @@ export interface AppContextType {
 		inflationMultiples: number[]
 		baseline: SimulationResultRow[] | null
 		houseWorth: number[]
+		pnl: { income: number, expenses: number }[]
 	}
 	viewedStrategy: {
 		id: string | null
@@ -167,6 +168,13 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 
 	}, [data.globalAssumptions.propertyPrice, data.globalAssumptions.expectedReturns.realEstate, data.globalAssumptions.simulationYears])
 
+	const pnl = React.useMemo(() => {
+		return computeIncomeAndExpenses(data.globalAssumptions)
+	}, [data.globalAssumptions])
+
+
+	console.log('global assumptions', data.globalAssumptions);
+
 	const ctx = React.useMemo(() => {
 		return {
 			data,
@@ -178,6 +186,7 @@ export function AppContextProvider({ children }: { children: React.ReactNode }) 
 				inflationMultiples,
 				baseline: baselineResults,
 				houseWorth,
+				pnl,
 			},
 			scenarios: {
 				...state.scenarios,

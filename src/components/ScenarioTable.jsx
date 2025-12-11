@@ -3,21 +3,9 @@ import { Table, Button, ListSelect } from './UI'
 import { getPortfolioTotal } from '../lib/simcore'
 import { useAppContext } from '../AppContext'
 
-// const SIM_INDICIES = [
-// 	// First year, every month
-// 	new Array(12).fill(0).map((_, i) => i),
-// 	// Next year, every quarter
-// 	new Array(4).fill(0).map((_, i) => 3 * i + 12),
-// 	// Next 1 years, every 6 months
-// 	new Array(2).fill(0).map((_, i) => 6 * i + 12),
-// 	// Next 36 years - every year
-// 	new Array(36).fill(0).map((_, i) => 12 * i + 36),
-// ].flat()
-
-const SIM_INDICIES = new Array(41).fill(0).map((_, i) => i * 12)
-
 export default function ScenarioTable() {
 	const ctx = useAppContext();
+	const SIM_INDICIES = new Array(ctx.data.globalAssumptions.simulationYears).fill(0).map((_, i) => i * 12)
 
 	const investStratList = ctx.data.investmentStrategies.map(s => ({ value: s.id, label: s.name }));
 	const mortgageList = ctx.data.mortgages.map(m => ({ value: m.id, label: m.name }));
@@ -26,16 +14,19 @@ export default function ScenarioTable() {
 		<Table>
 			<Table.Head>
 				<Table.Row>
-					<Table.Header rowSpan={2} thickRight>Year</Table.Header>
-					<Table.Header rowSpan={2} thickLeft thickRight>
+					<Table.Header rowSpan={2} thickRight>Age</Table.Header>
+					<Table.Header rowSpan={2} thickLeft>
 						<label className="cursor-pointer">
 							Infl
 							<br />
 							<input type="checkbox" checked={ctx.displayReal.value} onChange={() => ctx.displayReal.set(old => !old)} />
 						</label>
 					</Table.Header>
-					<Table.Header rowSpan={2} thickLeft className="min-w-[100px]">Est<br />House<br />Worth</Table.Header>
-					<Table.Header rowSpan={2} thickLeft>
+					<Table.Header rowSpan={2} thickRight className="min-w-[100px]">Est<br />House<br />Worth</Table.Header>
+					<Table.Header rowSpan={2} thickLeft className="min-w-[80px]">Income</Table.Header>
+					<Table.Header rowSpan={2} className="min-w-[80px]">Expenses</Table.Header>
+					<Table.Header rowSpan={2} className="min-w-[80px]" thickRight>Net</Table.Header>
+					<Table.Header colSpan={2} thickLeft thickRight>
 						<div className="flex flex-col gap-1 p-1 max-w-[160px]">
 							<div className="text-sm font-bold">No Mortgage</div>
 							<ListSelect
@@ -50,7 +41,7 @@ export default function ScenarioTable() {
 					{ctx.scenarios.items.map((scenario) => {
 						return (
 							<React.Fragment key={scenario.id}>
-								<Table.Header colSpan={4} thickLeft thickRight>
+								<Table.Header colSpan={5} thickLeft thickRight>
 									<div className="flex flex-col gap-1 p-1">
 										<div className="flex items-center gap-1">
 											<div>
@@ -72,7 +63,6 @@ export default function ScenarioTable() {
 													className="block flex-1"
 												/>
 											</div>
-											<div>
 
 												<Button
 													variant="secondary"
@@ -87,8 +77,7 @@ export default function ScenarioTable() {
 													onClick={() => ctx.scenarios.remove(scenario.id)}
 												>
 													Del
-												</Button>
-											</div>
+											</Button>
 										</div>
 									</div>
 								</Table.Header>
@@ -102,12 +91,15 @@ export default function ScenarioTable() {
 					</Table.Header>
 				</Table.Row>
 				<Table.Row>
+					<Table.Header thickLeft>Save Flow</Table.Header>
+					<Table.Header thickRight>Net<br />Worth</Table.Header>
 					{ctx.scenarios.items.map(scenario => (
 						<React.Fragment key={scenario.id}>
 							<Table.Header thickLeft className='min-w-[100px]'>Principle</Table.Header>
 							<Table.Header className='min-w-[100px]'>Equity</Table.Header>
+							<Table.Header className='min-w-[100px]'>Save<br />Flow</Table.Header>
 							<Table.Header className='min-w-[100px]'>Savings</Table.Header>
-							<Table.Header className='min-w-[100px]'>Net Worth</Table.Header>
+							<Table.Header className='min-w-[100px]'>Net<br />Worth</Table.Header>
 						</React.Fragment>
 					))}
 				</Table.Row>
@@ -118,14 +110,23 @@ export default function ScenarioTable() {
 					return (
 						<Table.Row key={index} inflMult={inflMult}>
 							<Table.Cell thickRight>{Math.floor((index) / 12) + 28}</Table.Cell>
-							<Table.Cell.Num thickLeft thickRight>{ctx.computed.inflationMultiples[index].toFixed(2)}</Table.Cell.Num>
-							<Table.Cell.Pounds thickLeft>
+							<Table.Cell.Num thickLeft>{ctx.computed.inflationMultiples[index].toFixed(2)}</Table.Cell.Num>
+							<Table.Cell.Pounds thickRight>
 								{ctx.computed.houseWorth[index]}
 							</Table.Cell.Pounds>
+							<Table.Cell.Pounds thickLeft>{ctx.computed.pnl[index].income}</Table.Cell.Pounds>
+							<Table.Cell.Pounds >{ctx.computed.pnl[index].expenses}</Table.Cell.Pounds>
+							<Table.Cell.Pounds thickRight>{ctx.computed.pnl[index].income - ctx.computed.pnl[index].expenses}</Table.Cell.Pounds>
 							{ctx.computed.baseline ? (
-								<Table.Cell.Portfolio portfolio={ctx.computed.baseline[index].investments} thickLeft />
+								<>
+									<Table.Cell.Pounds thickLeft>{ctx.computed.baseline[index].savingsFlow}</Table.Cell.Pounds>
+									<Table.Cell.Portfolio portfolio={ctx.computed.baseline[index].investments} thickRight />
+								</>
 							) : (
-								<Table.Cell thickLeft>-</Table.Cell>
+									<>
+										<Table.Cell thickLeft>-</Table.Cell>
+										<Table.Cell thickLeft>-</Table.Cell>
+									</>
 							)}
 							{ctx.scenarios.items.map((scenario, idx) => {
 								const row = scenario.results[index]
@@ -136,6 +137,7 @@ export default function ScenarioTable() {
 									<React.Fragment key={scenario.id}>
 										<Table.Cell.Pounds thickLeft>{row.home.principal}</Table.Cell.Pounds>
 										<Table.Cell.Pounds>{equity}</Table.Cell.Pounds>
+										<Table.Cell.Pounds>{row.savingsFlow}</Table.Cell.Pounds>
 										<Table.Cell.Portfolio portfolio={row.investments} />
 										<Table.Cell.Pounds thickRight>{netWorth}</Table.Cell.Pounds>
 									</React.Fragment>

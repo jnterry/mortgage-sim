@@ -1,3 +1,5 @@
+import { YEAR_CURVES, type YearCurveKind } from "./year-curves";
+
 export interface AssetClassNumbers {
 	cash: number;
 	stocks: number;
@@ -7,22 +9,12 @@ export interface AssetClassNumbers {
 	realEstate: number;
 }
 
-
 export interface GlobalAssumptions {
 	/** Total savings at start of simulation, including those used for deposit, plus investments */
 	openingSavings: number;
 
 	/** Price of property to be purchased */
 	propertyPrice: number;
-
-	/**
-	 * Cash flow available per month after general expenses (groceries, utilities, etc)
-	 * Will be divided between mortgage payments and savings to simulate how much can be saved/invested.
-	 */
-	freeCashFlow: number;
-
-	/** If not purchasing a property, how much rent would be paid per month? */
-	equivalentRent: number;
 
 	/** Expected returns for different asset classes over the lifetime of the mortgage in percentage per year */
 	expectedReturns: AssetClassNumbers;
@@ -35,6 +27,27 @@ export interface GlobalAssumptions {
 
 	/** Number of years to simulate */
 	simulationYears: number;
+
+	/** Age at which we retire */
+	retirementAge: number;
+
+	/** Age at which we start the simulation */
+	startAge: number;
+
+	/** Year at which we start the simulation */
+	startYear: number;
+
+	/** Assumed income per annum at start of simulation */
+	incomePa: number;
+
+	/** Assumed expenses per annum at start of simulation - excluding housing */
+	expensesPa: number;
+
+	/** If not purchasing a property, how much rent would be paid per month? */
+	equivalentRent: number;
+
+	/** Type of year curve to use to adjust income/expenses over time */
+	yearCurve: YearCurveKind;
 }
 
 export type AssetClass = keyof AssetClassNumbers;
@@ -125,9 +138,14 @@ export interface HomeStats {
 }
 
 export interface SimulationResultRow {
+	/** How much is the property worth? */
 	home: HomeStats;
 
+	/** How much is the portfolio worth? */
 	investments: InvestmentPortfolio;
+
+	/** How much is being added to savings per month? */
+	savingsFlow: number
 }
 
 function allocateValueByWeights(value: number, weights: AssetClassNumbers): AssetClassNumbers {
@@ -250,30 +268,55 @@ export function computePurchaseFees(propertyPrice: number, isFtb: boolean): Purc
 	}
 }
 
+export function computeIncomeAndExpenses(ga: GlobalAssumptions): { income: number, expenses: number }[] {
+
+	console.log('ga.yearCurve', ga.yearCurve);
+	const CURVE = YEAR_CURVES[ga.yearCurve];
+
+	const result: { income: number, expenses: number }[] = [];
+
+	for(let i = 0; i <= ga.simulationYears*12; ++i) {
+		const year = Math.floor(i/12);
+		const income = compoundInterest(ga.incomePa / 12, ga.inflationRate, year*12) * CURVE[year].income;
+		const expenses = compoundInterest(ga.expensesPa / 12, ga.inflationRate, year*12) * CURVE[year].expenses;
+		result.push({
+			income,
+			expenses,
+		});
+	}
+
+	return result;
+}
+
 export function simulateMortgageFree(ga: GlobalAssumptions, strategy: InvestmentStrategy): SimulationResultRow[] {
 	let lastPortfolio: InvestmentPortfolio = {
 		...EMPTY_PORTFOLIO,
 		cash: ga.openingSavings,
 	};
 
+	const pnl = computeIncomeAndExpenses(ga);
+
 	let results: SimulationResultRow[] = [];
 	results.push({
 		home: { principal: 0, worth: ga.propertyPrice },
 		investments: lastPortfolio,
+		savingsFlow: pnl[0].income - pnl[0].expenses - ga.equivalentRent,
 	});
 
-	for(let step = 0; step < ga.simulationYears*12; ++step) {
+	for(let step = 1; step <= ga.simulationYears*12; ++step) {
+		const extraDeposit = pnl[step].income - pnl[step].expenses - compoundInterest(ga.equivalentRent, ga.expectedReturns.realEstate, step);
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
 			strategy: strategy,
 			expectedReturns: ga.expectedReturns,
-			extraDeposit: ga.freeCashFlow - ga.equivalentRent,
+			extraDeposit,
 			rebalance: strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0,
 		});
 
 		results.push({
 			home: { principal: 0, worth: ga.propertyPrice * Math.pow(1 + ga.expectedReturns.realEstate / 12, step + 1) },
 			investments: nextPortfolio,
+			savingsFlow: extraDeposit,
 		});
 
 		lastPortfolio = nextPortfolio;
@@ -297,14 +340,16 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		worth: ga.propertyPrice,
 	}
 
+	let mortgageRepayment = computeMortgageRepayment(lastHome.principal, mortgage);
+	const pnl = computeIncomeAndExpenses(ga);
+
 	results.push({
 		home: lastHome,
 		investments: lastPortfolio,
+		savingsFlow: pnl[0].income - pnl[0].expenses - mortgageRepayment,
 	})
 
-	let mortgageRepayment = computeMortgageRepayment(lastHome.principal, mortgage);
-
-	for(let step = 0; step < ga.simulationYears*12; ++step) {
+	for(let step = 1; step <= ga.simulationYears*12; ++step) {
 		let nextHome = {
 			principal: lastHome.principal * (1 + mortgage.interestRate / 12),
 			worth: lastHome.worth * (1 + ga.expectedReturns.realEstate / 12),
@@ -313,7 +358,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		let repayment = Math.min(nextHome.principal, mortgageRepayment);
 		nextHome.principal -= repayment;
 
-		let savingsFlow = ga.freeCashFlow - repayment - nextHome.worth * ga.houseMaintenancePercentage / 12;
+		let savingsFlow = pnl[step].income - pnl[step].expenses - repayment - nextHome.worth * ga.houseMaintenancePercentage / 12;
 
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
@@ -327,6 +372,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		results.push({
 			home: nextHome,
 			investments: nextPortfolio,
+			savingsFlow: savingsFlow,
 		})
 
 		lastPortfolio = nextPortfolio;

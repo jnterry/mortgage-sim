@@ -1,10 +1,24 @@
 import type { GlobalAssumptions, InvestmentStrategy, MortgageParams } from "./simcore";
 
-export const GLOBAL_ASSUMPTIONS : GlobalAssumptions= {
+export const GLOBAL_ASSUMPTIONS : GlobalAssumptions = {
+	startYear: 2026,
+	startAge: 28,
+	retirementAge: 55,
 	openingSavings: 345000,
 	propertyPrice: 450000,
-	freeCashFlow: 3000,
+
+	/** Assumed post tax income per annum at start of simulation */
+	incomePa: 64000,
+
+	/** Assumed expenses per annum at start of simulation - excluding housing */
+	expensesPa: 27000,
+
+	/** If not purchasing a property, how much rent would be paid per month? */
 	equivalentRent: 1050,
+
+	/** Type of year curve to use to adjust income/expenses over time */
+	yearCurve: 'realistic',
+
 	expectedReturns: {
 		// 2008 - 2022 ~0.75 for 14 years
 		// 2022 - 2025 ~4.00 for 3 years
@@ -94,7 +108,7 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions= {
 	// over next few decades if its not kept under control (whcih it probably wont be as goverments are so indebted)
 	inflationRate: 0.035,
 	houseMaintenancePercentage: 0.01,
-	simulationYears: 40,
+	simulationYears: 71,
 }
 
 export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [

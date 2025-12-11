@@ -1,4 +1,5 @@
-import { LiveForm, InputNumber, InputPercent } from '../UI'
+import { LiveForm, InputNumber, InputPercent, ListSelect, Field } from '../UI'
+import { YEAR_CURVES } from '../../lib/year-curves'
 
 export default function GlobalAssumptionsForm({ value, setValue }) {
 	return (
@@ -12,8 +13,7 @@ export default function GlobalAssumptionsForm({ value, setValue }) {
 					gridTemplateColumns: 'auto repeat(6, 1fr)',
 				}}
 			>
-
-				<h3 className="text-lg font-bold">Scenario</h3>
+				<h3 className="text-lg font-bold">Property</h3>
 
 				<LiveForm.Field name="openingSavings" label="Opening Savings" input={{ Tag: InputNumber, prefix: '£' }} />
 				<LiveForm.Field name="propertyPrice" label="Property Price" input={{ Tag: InputNumber, prefix: '£' }} />
@@ -23,16 +23,22 @@ export default function GlobalAssumptionsForm({ value, setValue }) {
 						£{Math.round(value.propertyPrice * value.houseMaintenancePercentage / 12)} / month
 					</div>
 				</div>
-				<LiveForm.Field name="freeCashFlow" label="Free Cash Flow" input={{ Tag: InputNumber, prefix: '£' }} />
 				<LiveForm.Field name="inflationRate" label="Inflation Rate" input={{ Tag: InputPercent }} />
 				<div>
 					<LiveForm.Field name="equivalentRent" label="Equivalent Rent" input={{ Tag: InputNumber, prefix: '£' }} />
-					<div className="text-sm text-gray-500 text-right">
-						Savings: £{Math.round(value.freeCashFlow - value.equivalentRent)} / month
-					</div>
 				</div>
 
-				<h3 className="text-lg font-bold">Investment<br />Returns</h3>
+				<h3 className="text-lg font-bold" style={{ gridColumn: '1' }}>Self</h3>
+				<LiveForm.Field name="startYear" label="Start Year" input={{ Tag: InputNumber }} />
+				<LiveForm.Field name="startAge" label="Start Age" input={{ Tag: InputNumber }} />
+				<LiveForm.Field name="incomePa" label="Income / Year" input={{ Tag: InputNumber, prefix: '£' }} />
+				<LiveForm.Field name="expensesPa" label="Expenses / Year" input={{ Tag: InputNumber, prefix: '£' }} />
+				<LiveForm.Field name="yearCurve" label="Year Curve" input={{ Tag: ListSelect, list: Object.keys(YEAR_CURVES).map(key => ({ label: key, value: key })) }} />
+				<Field label="Disposable Income">
+					£{Math.round((value.incomePa - value.expensesPa) / 12)} / month
+				</Field>
+
+				<h3 className="text-lg font-bold" style={{ gridColumn: '1' }}>Investment<br />Returns</h3>
 				<LiveForm.SubObject name="expectedReturns">
 					<LiveForm.Field name="cash" label="Cash" input={{ Tag: InputPercent }} />
 					<LiveForm.Field name="stocks" label="Stocks" input={{ Tag: InputPercent }} />
