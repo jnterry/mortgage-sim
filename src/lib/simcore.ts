@@ -77,6 +77,18 @@ export function getPortfolioTotal(portfolio: InvestmentPortfolio): number {
 	return Object.values(portfolio).reduce((acc, value) => acc + value, 0);
 }
 
+/**
+ * Calculate compound interest over time
+ * @param principal - Starting amount
+ * @param annualRate - Annual interest rate as a decimal (e.g., 0.05 for 5%)
+ * @param months - Number of months to compound
+ * @returns Final amount after compound interest
+ */
+export function compoundInterest(principal: number, annualRate: number, months: number): number {
+	const monthlyRate = annualRate / 12;
+	return principal * Math.pow(1 + monthlyRate, months);
+}
+
 export interface MortgageParams {
 	/** Unique identifier for the mortgage */
 	id: string;
@@ -139,8 +151,6 @@ export function stepPortfolio(args: {
 	rebalance: boolean,
 }): InvestmentPortfolio {
 
-	console.log('Step Portfolio', args)
-
 	let next : InvestmentPortfolio = { ...args.portfolio };
 
 	// Simululate rebalance
@@ -187,8 +197,6 @@ export function stepPortfolio(args: {
 	for(let assetClass of Object.keys(next) as AssetClass[]) {
 		next[assetClass] *= (1 + args.expectedReturns[assetClass] / 12);
 	}
-
-	console.log('Next Portfolio', next)
 
 	return next;
 }
@@ -257,7 +265,7 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 		investments: lastPortfolio,
 	});
 
-	for(let step = 1; step < ga.simulationYears*12; ++step) {
+	for(let step = 0; step < ga.simulationYears*12; ++step) {
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
 			strategy: strategy,
@@ -267,7 +275,7 @@ export function simulateMortgageFree(ga: GlobalAssumptions, strategy: Investment
 		});
 
 		results.push({
-			home: { principal: 0, worth: ga.propertyPrice * Math.pow(1 + ga.expectedReturns.realEstate / 12, step) },
+			home: { principal: 0, worth: ga.propertyPrice * Math.pow(1 + ga.expectedReturns.realEstate / 12, step + 1) },
 			investments: nextPortfolio,
 		});
 

@@ -34,9 +34,15 @@ function TableRow({ children }) {
 	)
 }
 
-function TableCell({ children, className = '' }) {
+function TableCell({ children, className = '', thickLeft, thickRight, thickTop, thickBottom, ...props }) {
+	const thickClasses = []
+	if (thickLeft) thickClasses.push('border-l-2 border-l-black')
+	if (thickRight) thickClasses.push('border-r-2 border-r-black')
+	if (thickTop) thickClasses.push('border-t-2 border-t-black')
+	if (thickBottom) thickClasses.push('border-b-2 border-b-black')
+
 	return (
-		<td className={`border border-gray-200 border-solid p-1 ${className}`}>
+		<td className={`border border-gray-200 border-solid p-1 ${thickClasses.join(' ')} ${className}`} {...props}>
 			{children}
 		</td>
 	)
@@ -50,16 +56,19 @@ function TableCellNumber({ children }) {
 	)
 }
 
-function TableCellPounds({ children }) {
+function TableCellPounds({ children, ...props }) {
 	// Reformat with commas
+	const formattedValue = typeof children === 'number'
+		? children.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0]
+		: children
 	return (
-		<TableCell className="text-right">
-			{children.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0]}
+		<TableCell className="text-right" {...props}>
+			{formattedValue}
 		</TableCell>
 	)
 }
 
-function TableCellPortfolio({ portfolio }) {
+function TableCellPortfolio({ portfolio, ...props }) {
 	const total = getPortfolioTotal(portfolio)
 	const formattedTotal = total.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' }).split('.')[0]
 
@@ -83,7 +92,7 @@ function TableCellPortfolio({ portfolio }) {
 		.sort((a, b) => b.value - a.value)
 
 	return (
-		<TableCell className="text-right">
+		<TableCell className="text-right" {...props}>
 			<TriggeredPopover
 				content={
 					<div className="p-2 bg-white border border-gray-300 rounded shadow-lg min-w-[200px]">
@@ -105,9 +114,15 @@ function TableCellPortfolio({ portfolio }) {
 	)
 }
 
-function TableHeader({ children, ...props }) {
+function TableHeader({ children, thickLeft, thickRight, thickTop, thickBottom, ...props }) {
+	const thickClasses = []
+	if (thickLeft) thickClasses.push('border-l-2 border-l-black')
+	if (thickRight) thickClasses.push('border-r-2 border-r-black')
+	if (thickTop) thickClasses.push('border-t-2 border-t-black')
+	if (thickBottom) thickClasses.push('border-b-2 border-b-black')
+
 	return (
-		<th className="font-bold bg-gray-200" {...props}>
+		<th className={`font-bold bg-gray-200 border border-gray-200 border-solid ${thickClasses.join(' ')}`} {...props}>
 			{children}
 		</th>
 	)
