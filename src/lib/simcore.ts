@@ -262,7 +262,7 @@ export function computePurchaseFees(propertyPrice: number, isFtb: boolean): Purc
 
 	// First time buyers pay 0% stamp duty on the first £300,000 of the property price, and 5% on the rest
 	// If purchase price is over 500k, this exemption is not available.
-	const stampDutyBands = isFtb && propertyPrice < 500000? [
+	const stampDutyBands = isFtb && propertyPrice <= 500000? [
 		{ upper: 300000, rate: 0.00 },
 		{ upper: Infinity, rate: 0.05 },
 	] : [
@@ -429,13 +429,17 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		let nextPortfolio = stepPortfolio({
 			portfolio: lastPortfolio,
 			strategy: strategy,
-			expectedReturns: ga.expectedReturns,
+			expectedReturns: {
+				...ga.expectedReturns,
+				// If is an offset mortgage, we don't earn interest on the cash in the portfolio since such
+				// interest is effectively being earnt by the mortgage provider instead
+				cash: mortgage.isOffset ? 0 : ga.expectedReturns.cash,
+			},
 			extraDeposit: savingsFlow,
 			rebalance: (strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0) || forceRebalance,
 			inflationMultiple: compoundInterest(1, ga.inflationRate, step),
 		});
 		forceRebalance = false;
-
 
 		results.push({
 			home: nextHome,
