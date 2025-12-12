@@ -478,7 +478,6 @@ const YEAR_CURVE_EARLY_RETIREMENT: YearCurveValues[] = [
 ];
 
 
-
 export const YEAR_CURVES: { name: string, key: string, values: YearCurveValues[] }[] = [
 	{ name: 'Flat', key: 'flat', values: YEAR_CURVE_FLAT },
 	{ name: 'Jamie 20hr, Emily maternity then full', key: 'jamie-flat-emily-4-maternity', values: YEAR_CURVE_J_FLAT_E_4_MATERNITY },

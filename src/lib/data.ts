@@ -6,6 +6,7 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions = {
 	retirementAge: 55,
 	openingSavings: 345000,
 	propertyPrice: 450000,
+	renovationFund: 0,
 
 	/** Assumed post tax income per annum at start of simulation */
 	income1Pa: 33800,

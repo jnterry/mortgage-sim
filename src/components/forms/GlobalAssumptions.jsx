@@ -17,6 +17,7 @@ export default function GlobalAssumptionsForm({ value, setValue }) {
 
 				<LiveForm.Field name="openingSavings" label="Opening Savings" input={{ Tag: InputNumber, prefix: '£' }} />
 				<LiveForm.Field name="propertyPrice" label="Property Price" input={{ Tag: InputNumber, prefix: '£' }} />
+				<LiveForm.Field name="renovationFund" label="Renovation Fund" input={{ Tag: InputNumber, prefix: '£' }} />
 				<div>
 					<LiveForm.Field name="houseMaintenancePercentage" label="House Upkeep" input={{ Tag: InputPercent }} />
 					<div className="text-sm text-gray-500 text-right">

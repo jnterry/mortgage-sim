@@ -39,16 +39,18 @@ export function MortgageForm({ value, setValue, globalAssumptions }) {
 				<LiveForm.Field name="fixedPeriod" label="Fixed Period" input={{ Tag: InputNumber }} />
 
 				<LiveForm.Field name="arrangementFee" label="Arrangement Fee" input={{ Tag: InputNumber, prefix: '£' }} />
-				<Field label="Expected Fees">
-					<span>£{expectedPurchaseFees}</span>
-				</Field>
 
 				<LiveForm.Field name="ltv" label="Loan to Value" input={{ Tag: InputPercent }} />
 
 				<LiveForm.Field name="isRepayment" label="Is Repayment?" input={{ Tag: Checkbox }} />
+				<LiveForm.Field name="isOffset" label="Is Offset?" input={{ Tag: Checkbox }} />
 
 				<Field label="Deposit">
 					<span>£{deposit}</span>
+				</Field>
+
+				<Field label="Expected Fees">
+					<span>£{expectedPurchaseFees}</span>
 				</Field>
 
 				<Field label="Amount Borrowed">

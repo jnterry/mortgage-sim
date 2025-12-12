@@ -16,6 +16,9 @@ export interface GlobalAssumptions {
 	/** Price of property to be purchased */
 	propertyPrice: number;
 
+	/** Amount of money set aside for initial renovation costs */
+	renovationFund: number;
+
 	/** Expected returns for different asset classes over the lifetime of the mortgage in percentage per year */
 	expectedReturns: AssetClassNumbers;
 
@@ -369,6 +372,13 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 	let mortgageRepayment = computeMortgageRepayment(lastHome.principal, mortgage);
 	const pnl = computeIncomeAndExpenses(ga);
 
+	let forceRebalance = false;
+	if(ga.renovationFund > 0) {
+		forceRebalance = true;
+		lastPortfolio.cash -= ga.renovationFund;
+		lastHome.worth += ga.renovationFund * 0.6; // assume 60% of renovation fund is added to the property value
+	}
+
 	results.push({
 		home: lastHome,
 		investments: lastPortfolio,
@@ -407,7 +417,6 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 		repayment = Math.min(nextHome.principal, mortgageRepayment);
 		nextHome.principal -= repayment;
 
-		let forceRebalance = false;
 		if(step === 12 * mortgage.term && !mortgage.isRepayment) {
 			// Then its the end of a interest only mortgage so we need to payoff the the remaining balance
 			extraDelta = -lastHome.principal;
@@ -425,6 +434,7 @@ export function simulateMortgage(ga: GlobalAssumptions, strategy: InvestmentStra
 			rebalance: (strategy.rebalanceFrequency > 0 && step % strategy.rebalanceFrequency === 0) || forceRebalance,
 			inflationMultiple: compoundInterest(1, ga.inflationRate, step),
 		});
+		forceRebalance = false;
 
 
 		results.push({

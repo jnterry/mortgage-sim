@@ -5,7 +5,7 @@ export default function ListEditor({ selectedId, setSelectedId, value, setValue,
 	const selected = value.find((strategy) => strategy.id === selectedId);
 	return (
 		<div className="grid grid-cols-2 gap-4">
-			<div className="border-r-solid border-gray-500 border-r-2 overflow-y-auto">
+			<div className="border-r-solid border-gray-500 border-r-2 overflow-y-auto max-h-[560px]">
 				{value.map((item) => (
 					<div
 						key={item.id}
