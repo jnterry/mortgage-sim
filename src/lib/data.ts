@@ -141,7 +141,7 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 			realEstate: 0,
 		},
 		maxCash: 100000,
-		minCash: 50000,
+		minCash: 75000,
 		rebalanceFrequency: 12,
 	},
 	{
@@ -155,8 +155,8 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 			bonds: 3,
 			realEstate: 0,
 		},
-		maxCash: 75000,
-		minCash: 30000,
+		maxCash: 100000,
+		minCash: 50000,
 		rebalanceFrequency: 12,
 	},
 	{
@@ -170,8 +170,8 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 			bonds: 0,
 			realEstate: 0,
 		},
-		maxCash: 50000,
-		minCash: 30000,
+		maxCash: 75000,
+		minCash: 50000,
 		rebalanceFrequency: 12,
 	},
 	{
@@ -186,7 +186,7 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 			realEstate: 0,
 		},
 		maxCash: 50000,
-		minCash: 30000,
+		minCash: 20000,
 		rebalanceFrequency: 12,
 	}
 ]
@@ -328,6 +328,16 @@ export const MORTGAGES : MortgageParams[] = [
 		name: '2Fix 80% LTV Offset (Yorkshire BS)',
 		interestRate: 0.0425,
 		ltv: 0.8,
+		term: 30,
+		fixedPeriod: 2,
+		arrangementFee: 995,
+		isRepayment: true,
+		isOffset: true,
+	},
+	{
+		name: '2Fix 75% LTV Offset (Yorkshire BS)',
+		interestRate: 0.0415,
+		ltv: 0.75,
 		term: 30,
 		fixedPeriod: 2,
 		arrangementFee: 995,
