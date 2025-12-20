@@ -5,12 +5,12 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions = {
 	startAge: 28,
 	retirementAge: 55,
 	openingSavings: 345000,
-	propertyPrice: 450000,
+	propertyPrice: 500000,
 	renovationFund: 0,
 
 	/** Assumed post tax income per annum at start of simulation */
 	income1Pa: 33800,
-	income2Pa: 28100,
+	income2Pa: 30500,
 
 	/** Assumed expenses per annum at start of simulation - excluding housing */
 	expensesPa: 26000,
@@ -19,7 +19,7 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions = {
 	equivalentRent: 1050,
 
 	/** Type of year curve to use to adjust income/expenses over time */
-	yearCurve: 'jamie-flat-emily-4-maternity',
+	yearCurve: 'jamie-30hr-emily-part',
 
 	expectedReturns: {
 		// 2008 - 2022 ~0.75 for 14 years
@@ -54,9 +54,9 @@ export const GLOBAL_ASSUMPTIONS : GlobalAssumptions = {
 		//
 		// Returns have been bigger in past, but I'm expecting diminshing returns over time
 		// If you measured trough in 2024 of 17.5k to 2025 peak of 123 its 165% per year...
-		// Conservatively, we'll assume the continued 15% per year if you do peak to peak
-		// I'm hoping we can do better than that...
-		crypto: 0.15,
+		// Conservatively, we'll assume 12% per year (peak to peak is 15%, but diminishing returns, plus mistiming)
+		// might decrease...
+		crypto: 0.12,
 
 		// Gold prices:
 		// 1971 (when unlinked from fixed exchange rate): 35.78 USD per ounce
@@ -149,10 +149,10 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 		name: 'Balanced',
 		allocationWeights: {
 			cash: 3,
-			stocks: 80,
-			crypto: 7,
-			gold: 8,
-			bonds: 3,
+			stocks: 77,
+			crypto: 5,
+			gold: 5,
+			bonds: 10,
 			realEstate: 0,
 		},
 		maxCash: 100000,
@@ -164,14 +164,14 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 		name: 'Aggressive',
 		allocationWeights: {
 			cash: 3,
-			stocks: 70,
-			crypto: 15,
-			gold: 7,
-			bonds: 5,
+			stocks: 82,
+			crypto: 10,
+			gold: 5,
+			bonds: 0,
 			realEstate: 0,
 		},
-		maxCash: 75000,
-		minCash: 50000,
+		maxCash: 50000,
+		minCash: 30000,
 		rebalanceFrequency: 12,
 	},
 	{
@@ -179,14 +179,14 @@ export const INVESTMENT_STRATEGIES: InvestmentStrategy[] = [
 		name: 'Kamakaze',
 		allocationWeights: {
 			cash: 1,
-			stocks: 60,
+			stocks: 65,
 			crypto: 25,
 			gold: 10,
-			bonds: 5,
+			bonds: 0,
 			realEstate: 0,
 		},
-		maxCash: 50000,
-		minCash: 20000,
+		maxCash: 30000,
+		minCash: 15000,
 		rebalanceFrequency: 12,
 	}
 ]
@@ -354,6 +354,16 @@ export const MORTGAGES : MortgageParams[] = [
 		isRepayment: true,
 		isOffset: true,
 	},
+	{
+		name: '10Fix 76% LTV Nationwide',
+		interestRate: 0.0435,
+		ltv: 0.76,
+		term: 40,
+		fixedPeriod: 10,
+		arrangementFee: 999,
+		isRepayment: true,
+		isOffset: false,
+	}
 ].map((m, i) => ({
 	...m,
 	id: `mortgage-${i}`,
