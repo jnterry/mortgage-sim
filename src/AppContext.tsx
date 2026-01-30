@@ -48,7 +48,7 @@ export function useAppState(data: AppData) {
 
 	// The baseline mortgage free investment strategy which is used as a point of comparison to
 	// if we just rented rather than buying a property.
-	const [baselineStrategyId, setBaselineStrategyId] = React.useState<string>('balanced');
+	const [baselineStrategyId, setBaselineStrategyId] = React.useState<string>('aggressive');
 
 	const [scenarios, setScenarios] = React.useState<ScenarioParams[]>([]);
 
